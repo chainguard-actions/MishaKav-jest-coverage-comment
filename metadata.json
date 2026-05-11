@@ -1,0 +1,7 @@
+{
+  "owner": "MishaKav",
+  "name": "jest-coverage-comment",
+  "visibility": "internal",
+  "description": "Comments a pull request or commit with the Jest code coverage badge, full report and tests summary",
+  "block_publish": false
+}
