@@ -1,0 +1,58 @@
+name: Test basic coverage output
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_REF: refs/pull/1/merge
+      GITHUB_HEAD_REF: feature-branch
+      GITHUB_BASE_REF: main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Copy fixture coverage file
+        run: |
+          mkdir -p ./coverage
+          cp $GITHUB_WORKSPACE/actions/hardened/MishaKav--jest-coverage-comment/v1.0.32/tests/fixtures/coverage/coverage-summary.json ./coverage/coverage-summary.json
+
+      - id: action
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: ./coverage/coverage-summary.json
+          hide-comment: 'true'
+
+      - name: Assert coverage output is set
+        env:
+          ACTUAL: ${{ steps.action.outputs.coverage }}
+        run: |
+          echo "actual coverage: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: expected coverage output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: coverage=$ACTUAL"
+
+      - name: Assert color output is set
+        env:
+          ACTUAL: ${{ steps.action.outputs.color }}
+        run: |
+          echo "actual color: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: expected color output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: color=$ACTUAL"
+
+      - name: Assert summaryHtml output is set
+        env:
+          ACTUAL: ${{ steps.action.outputs.summaryHtml }}
+        run: |
+          echo "actual summaryHtml length: ${#ACTUAL}"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: expected summaryHtml output to be non-empty"
+            exit 1
+          fi
+          echo "PASS"
