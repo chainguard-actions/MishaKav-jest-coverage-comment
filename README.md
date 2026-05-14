@@ -10,6 +10,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 |---------|-----|-----------------|
 | v1.0.28 | [`v1.0.28`](https://github.com/chainguard-actions/jest-coverage-comment/tree/v1.0.28) | — |
 | v1.0.29 | [`v1.0.29`](https://github.com/chainguard-actions/jest-coverage-comment/tree/v1.0.29) | — |
+| v1.0.30 | [`v1.0.30`](https://github.com/chainguard-actions/jest-coverage-comment/tree/v1.0.30) | — |
 | v1.0.32 | [`v1.0.32`](https://github.com/chainguard-actions/jest-coverage-comment/tree/v1.0.32) | — |
 
 ## Privacy
