@@ -1,0 +1,50 @@
+name: Test hide summary option
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_REF: refs/pull/1/merge
+      GITHUB_HEAD_REF: feature-branch
+      GITHUB_BASE_REF: main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Copy fixture coverage file
+        run: |
+          mkdir -p ./coverage
+          cp $GITHUB_WORKSPACE/actions/hardened/MishaKav--jest-coverage-comment/v1.0.29/tests/fixtures/coverage/coverage-summary.json ./coverage/coverage-summary.json
+
+      - id: action
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: './coverage/coverage-summary.json'
+          hide-summary: 'true'
+          hide-comment: 'true'
+          badge-title: 'Test Coverage'
+          summary-title: 'Summary'
+
+      - name: Assert coverage output is still produced
+        env:
+          ACTUAL: ${{ steps.action.outputs.coverage }}
+        run: |
+          echo "actual coverage: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: coverage output is empty even with hide-summary"
+            exit 1
+          fi
+          echo "PASS: coverage=$ACTUAL"
+
+      - name: Assert color output is still produced
+        env:
+          ACTUAL: ${{ steps.action.outputs.color }}
+        run: |
+          echo "actual color: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: color output is empty even with hide-summary"
+            exit 1
+          fi
+          echo "PASS: color=$ACTUAL"
