@@ -1,0 +1,69 @@
+name: Test junitxml integration
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: ${{ github.workspace }}/actions/hardened/MishaKav--jest-coverage-comment/v1.0.28/tests/fixtures/coverage-summary.json
+          junitxml-path: ${{ github.workspace }}/actions/hardened/MishaKav--jest-coverage-comment/v1.0.28/tests/fixtures/junit.xml
+          junitxml-title: 'Test Results'
+          hide-comment: 'true'
+
+      - name: Assert tests output
+        env:
+          TESTS: ${{ steps.action.outputs.tests }}
+        run: |
+          echo "tests: $TESTS"
+          if [ -z "$TESTS" ]; then
+            echo "FAIL: tests output is empty"
+            exit 1
+          fi
+          if [ "$TESTS" != "10" ]; then
+            echo "FAIL: expected tests=10, got $TESTS"
+            exit 1
+          fi
+          echo "PASS: tests=$TESTS"
+
+      - name: Assert failures output
+        env:
+          FAILURES: ${{ steps.action.outputs.failures }}
+        run: |
+          echo "failures: $FAILURES"
+          if [ -z "$FAILURES" ]; then
+            echo "FAIL: failures output is empty"
+            exit 1
+          fi
+          if [ "$FAILURES" != "1" ]; then
+            echo "FAIL: expected failures=1, got $FAILURES"
+            exit 1
+          fi
+          echo "PASS: failures=$FAILURES"
+
+      - name: Assert errors output
+        env:
+          ERRORS: ${{ steps.action.outputs.errors }}
+        run: |
+          echo "errors: $ERRORS"
+          if [ "$ERRORS" != "0" ]; then
+            echo "FAIL: expected errors=0, got $ERRORS"
+            exit 1
+          fi
+          echo "PASS: errors=$ERRORS"
+
+      - name: Assert time output
+        env:
+          TIME: ${{ steps.action.outputs.time }}
+        run: |
+          echo "time: $TIME"
+          if [ -z "$TIME" ]; then
+            echo "FAIL: time output is empty"
+            exit 1
+          fi
+          echo "PASS: time=$TIME"

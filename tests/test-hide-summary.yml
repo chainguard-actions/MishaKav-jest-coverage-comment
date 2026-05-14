@@ -1,0 +1,38 @@
+name: Test hide-summary option
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: ${{ github.workspace }}/actions/hardened/MishaKav--jest-coverage-comment/v1.0.28/tests/fixtures/coverage-summary.json
+          hide-summary: 'true'
+          hide-comment: 'true'
+
+      - name: Assert coverage output is still present when summary hidden
+        env:
+          COVERAGE: ${{ steps.action.outputs.coverage }}
+        run: |
+          echo "coverage: $COVERAGE"
+          if [ -z "$COVERAGE" ]; then
+            echo "FAIL: coverage output is empty even with hide-summary=true"
+            exit 1
+          fi
+          echo "PASS: coverage=$COVERAGE"
+
+      - name: Assert color output is still present when summary hidden
+        env:
+          COLOR: ${{ steps.action.outputs.color }}
+        run: |
+          echo "color: $COLOR"
+          if [ -z "$COLOR" ]; then
+            echo "FAIL: color output is empty even with hide-summary=true"
+            exit 1
+          fi
+          echo "PASS: color=$COLOR"

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="10" failures="1" errors="0" time="2.345">
+  <testsuite name="src/index.test.js" tests="5" failures="0" errors="0" time="1.234" timestamp="2023-01-01T00:00:00">
+    <testcase classname="src/index.test.js" name="should work correctly" time="0.123"></testcase>
+    <testcase classname="src/index.test.js" name="should handle edge case" time="0.234"></testcase>
+    <testcase classname="src/index.test.js" name="should return value" time="0.345"></testcase>
+    <testcase classname="src/index.test.js" name="should process input" time="0.456"></testcase>
+    <testcase classname="src/index.test.js" name="should validate output" time="0.076"></testcase>
+  </testsuite>
+  <testsuite name="src/utils.test.js" tests="5" failures="1" errors="0" time="1.111" timestamp="2023-01-01T00:00:00">
+    <testcase classname="src/utils.test.js" name="should format correctly" time="0.111"></testcase>
+    <testcase classname="src/utils.test.js" name="should parse input" time="0.222"></testcase>
+    <testcase classname="src/utils.test.js" name="should handle null" time="0.333">
+      <failure message="Expected null to be defined">Expected null to be defined</failure>
+    </testcase>
+    <testcase classname="src/utils.test.js" name="should transform data" time="0.222"></testcase>
+    <testcase classname="src/utils.test.js" name="should validate schema" time="0.223"></testcase>
+  </testsuite>
+</testsuites>
