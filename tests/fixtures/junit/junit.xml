@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="10" failures="1" errors="0" time="5.123">
+  <testsuite name="src/index.test.js" tests="6" failures="0" errors="0" time="2.5" timestamp="2024-01-01T00:00:00">
+    <testcase classname="src/index.test.js" name="should return true" time="0.5"></testcase>
+    <testcase classname="src/index.test.js" name="should return false" time="0.4"></testcase>
+    <testcase classname="src/index.test.js" name="should handle null" time="0.3"></testcase>
+    <testcase classname="src/index.test.js" name="should handle undefined" time="0.4"></testcase>
+    <testcase classname="src/index.test.js" name="should handle empty string" time="0.5"></testcase>
+    <testcase classname="src/index.test.js" name="should handle array" time="0.4"></testcase>
+  </testsuite>
+  <testsuite name="src/utils.test.js" tests="4" failures="1" errors="0" time="2.623" timestamp="2024-01-01T00:00:00">
+    <testcase classname="src/utils.test.js" name="should format correctly" time="0.5"></testcase>
+    <testcase classname="src/utils.test.js" name="should parse correctly" time="0.6"></testcase>
+    <testcase classname="src/utils.test.js" name="should validate input" time="0.5">
+      <failure message="Expected true but received false">AssertionError: Expected true but received false</failure>
+    </testcase>
+    <testcase classname="src/utils.test.js" name="should handle edge case" time="1.023"></testcase>
+  </testsuite>
+</testsuites>

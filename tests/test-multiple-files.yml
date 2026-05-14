@@ -1,0 +1,42 @@
+name: Test multiple coverage files
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_REF: refs/pull/1/merge
+      GITHUB_HEAD_REF: feature-branch
+      GITHUB_BASE_REF: main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Copy fixture coverage files
+        run: |
+          mkdir -p ./coverage/app1
+          mkdir -p ./coverage/app2
+          cp $GITHUB_WORKSPACE/actions/hardened/MishaKav--jest-coverage-comment/v1.0.33/tests/fixtures/coverage/coverage-summary.json ./coverage/app1/coverage-summary.json
+          cp $GITHUB_WORKSPACE/actions/hardened/MishaKav--jest-coverage-comment/v1.0.33/tests/fixtures/coverage/coverage-summary.json ./coverage/app2/coverage-summary.json
+
+      - id: action
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          hide-comment: 'true'
+          multiple-files: |
+            App1, ./coverage/app1/coverage-summary.json
+            App2, ./coverage/app2/coverage-summary.json
+
+      - name: Assert outputs from multiple files
+        env:
+          ACTUAL_COVERAGE: ${{ steps.action.outputs.coverage }}
+          ACTUAL_COLOR: ${{ steps.action.outputs.color }}
+        run: |
+          echo "coverage: $ACTUAL_COVERAGE"
+          echo "color: $ACTUAL_COLOR"
+          if [ -z "$ACTUAL_COLOR" ]; then
+            echo "FAIL: color output is empty"
+            exit 1
+          fi
+          echo "PASS: color=$ACTUAL_COLOR"

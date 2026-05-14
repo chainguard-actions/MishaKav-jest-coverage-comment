@@ -1,0 +1,64 @@
+name: Test coverage with junitxml
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_REF: refs/pull/1/merge
+      GITHUB_HEAD_REF: feature-branch
+      GITHUB_BASE_REF: main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Copy fixture files
+        run: |
+          mkdir -p ./coverage
+          mkdir -p ./junit
+          cp $GITHUB_WORKSPACE/actions/hardened/MishaKav--jest-coverage-comment/v1.0.33/tests/fixtures/coverage/coverage-summary.json ./coverage/coverage-summary.json
+          cp $GITHUB_WORKSPACE/actions/hardened/MishaKav--jest-coverage-comment/v1.0.33/tests/fixtures/junit/junit.xml ./junit/junit.xml
+
+      - id: action
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: ./coverage/coverage-summary.json
+          junitxml-path: ./junit/junit.xml
+          junitxml-title: 'Test Results'
+          hide-comment: 'true'
+
+      - name: Assert junitxml outputs
+        env:
+          ACTUAL_TESTS: ${{ steps.action.outputs.tests }}
+          ACTUAL_FAILURES: ${{ steps.action.outputs.failures }}
+          ACTUAL_ERRORS: ${{ steps.action.outputs.errors }}
+          ACTUAL_TIME: ${{ steps.action.outputs.time }}
+          ACTUAL_COVERAGE: ${{ steps.action.outputs.coverage }}
+        run: |
+          echo "tests: $ACTUAL_TESTS"
+          echo "failures: $ACTUAL_FAILURES"
+          echo "errors: $ACTUAL_ERRORS"
+          echo "time: $ACTUAL_TIME"
+          echo "coverage: $ACTUAL_COVERAGE"
+          if [ -z "$ACTUAL_TESTS" ]; then
+            echo "FAIL: tests output is empty"
+            exit 1
+          fi
+          if [ "$ACTUAL_TESTS" != "10" ]; then
+            echo "FAIL: expected tests to be 10, got '$ACTUAL_TESTS'"
+            exit 1
+          fi
+          if [ "$ACTUAL_FAILURES" != "1" ]; then
+            echo "FAIL: expected failures to be 1, got '$ACTUAL_FAILURES'"
+            exit 1
+          fi
+          if [ "$ACTUAL_ERRORS" != "0" ]; then
+            echo "FAIL: expected errors to be 0, got '$ACTUAL_ERRORS'"
+            exit 1
+          fi
+          if [ -z "$ACTUAL_COVERAGE" ]; then
+            echo "FAIL: coverage output is empty"
+            exit 1
+          fi
+          echo "PASS: tests=$ACTUAL_TESTS failures=$ACTUAL_FAILURES errors=$ACTUAL_ERRORS coverage=$ACTUAL_COVERAGE"

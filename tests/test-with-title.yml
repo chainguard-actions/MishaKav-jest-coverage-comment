@@ -1,0 +1,51 @@
+name: Test coverage with title inputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_REF: refs/pull/1/merge
+      GITHUB_HEAD_REF: feature-branch
+      GITHUB_BASE_REF: main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Copy fixture coverage file
+        run: |
+          mkdir -p ./coverage
+          cp $GITHUB_WORKSPACE/actions/hardened/MishaKav--jest-coverage-comment/v1.0.33/tests/fixtures/coverage/coverage-summary.json ./coverage/coverage-summary.json
+
+      - id: action
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: ./coverage/coverage-summary.json
+          title: 'My Project Coverage Report'
+          summary-title: 'Coverage Summary'
+          badge-title: 'Test Coverage'
+          hide-comment: 'true'
+
+      - name: Assert coverage output with title
+        env:
+          ACTUAL_COVERAGE: ${{ steps.action.outputs.coverage }}
+          ACTUAL_COLOR: ${{ steps.action.outputs.color }}
+          ACTUAL_SUMMARY_HTML: ${{ steps.action.outputs.summaryHtml }}
+        run: |
+          echo "coverage: $ACTUAL_COVERAGE"
+          echo "color: $ACTUAL_COLOR"
+          echo "summaryHtml length: ${#ACTUAL_SUMMARY_HTML}"
+          if [ -z "$ACTUAL_COVERAGE" ]; then
+            echo "FAIL: coverage output is empty"
+            exit 1
+          fi
+          if [ "$ACTUAL_COVERAGE" != "80" ]; then
+            echo "FAIL: expected coverage to be 80, got '$ACTUAL_COVERAGE'"
+            exit 1
+          fi
+          if [ -z "$ACTUAL_COLOR" ]; then
+            echo "FAIL: color output is empty"
+            exit 1
+          fi
+          echo "PASS: coverage=$ACTUAL_COVERAGE color=$ACTUAL_COLOR"
