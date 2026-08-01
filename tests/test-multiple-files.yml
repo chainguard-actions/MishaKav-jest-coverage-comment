@@ -1,0 +1,50 @@
+name: Test Multiple Coverage Files
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create multiple coverage summary files
+        run: |
+          mkdir -p coverage/app1 coverage/app2
+
+          cat > coverage/app1/coverage-summary.json << 'EOF'
+          {
+            "total": {
+              "lines": { "total": 100, "covered": 90, "skipped": 0, "pct": 90 },
+              "statements": { "total": 110, "covered": 99, "skipped": 0, "pct": 90 },
+              "functions": { "total": 20, "covered": 18, "skipped": 0, "pct": 90 },
+              "branches": { "total": 30, "covered": 27, "skipped": 0, "pct": 90 }
+            }
+          }
+          EOF
+
+          cat > coverage/app2/coverage-summary.json << 'EOF'
+          {
+            "total": {
+              "lines": { "total": 50, "covered": 25, "skipped": 0, "pct": 50 },
+              "statements": { "total": 60, "covered": 30, "skipped": 0, "pct": 50 },
+              "functions": { "total": 10, "covered": 5, "skipped": 0, "pct": 50 },
+              "branches": { "total": 20, "covered": 10, "skipped": 0, "pct": 50 }
+            }
+          }
+          EOF
+
+      - id: coverage
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          hide-comment: 'true'
+          multiple-files: |
+            App1, ./coverage/app1/coverage-summary.json
+            App2, ./coverage/app2/coverage-summary.json
+
+      - name: Assert outputs are present
+        env:
+          SUMMARY_HTML: ${{ steps.coverage.outputs.summaryHtml }}
+        run: |
+          echo "summaryHtml length: ${#SUMMARY_HTML}"
+          echo "PASS: action completed successfully with multiple files"

@@ -1,0 +1,57 @@
+name: Test Basic Coverage Summary
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create coverage summary file
+        run: |
+          mkdir -p coverage
+          cat > coverage/coverage-summary.json << 'EOF'
+          {
+            "total": {
+              "lines": { "total": 100, "covered": 80, "skipped": 0, "pct": 80 },
+              "statements": { "total": 120, "covered": 96, "skipped": 0, "pct": 80 },
+              "functions": { "total": 30, "covered": 24, "skipped": 0, "pct": 80 },
+              "branches": { "total": 40, "covered": 32, "skipped": 0, "pct": 80 }
+            },
+            "src/index.js": {
+              "lines": { "total": 100, "covered": 80, "skipped": 0, "pct": 80 },
+              "statements": { "total": 120, "covered": 96, "skipped": 0, "pct": 80 },
+              "functions": { "total": 30, "covered": 24, "skipped": 0, "pct": 80 },
+              "branches": { "total": 40, "covered": 32, "skipped": 0, "pct": 80 }
+            }
+          }
+          EOF
+
+      - id: coverage
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: ./coverage/coverage-summary.json
+          hide-comment: 'true'
+
+      - name: Assert coverage output
+        env:
+          COVERAGE: ${{ steps.coverage.outputs.coverage }}
+          COLOR: ${{ steps.coverage.outputs.color }}
+          SUMMARY_HTML: ${{ steps.coverage.outputs.summaryHtml }}
+        run: |
+          echo "coverage: $COVERAGE"
+          echo "color: $COLOR"
+          echo "summaryHtml length: ${#SUMMARY_HTML}"
+
+          if [ -z "$COVERAGE" ]; then
+            echo "FAIL: coverage output is empty"
+            exit 1
+          fi
+          echo "PASS: coverage output is '$COVERAGE'"
+
+          if [ -z "$COLOR" ]; then
+            echo "FAIL: color output is empty"
+            exit 1
+          fi
+          echo "PASS: color output is '$COLOR'"

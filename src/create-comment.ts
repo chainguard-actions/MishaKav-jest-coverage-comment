@@ -1,0 +1,161 @@
+import * as core from '@actions/core'
+import { context, getOctokit } from '@actions/github'
+import { Options } from './types.d'
+
+const MAX_COMMENT_LENGTH = 65536
+
+export async function createComment(
+  options: Options,
+  body: string
+): Promise<void> {
+  try {
+    const { eventName, payload } = context
+    const { repo, owner } = context.repo
+
+    const octokit = getOctokit(options.token)
+    const issue_number = payload.pull_request
+      ? payload.pull_request.number
+      : options.issueNumber
+        ? Number(options.issueNumber)
+        : 0
+
+    if (body.length > MAX_COMMENT_LENGTH) {
+      const warningsArr = [
+        `Your comment is too long (maximum is ${MAX_COMMENT_LENGTH} characters), coverage report will not be added.`,
+        'Try one/some of the following:',
+        `- Add "['text-summary', { skipFull: true }]" - to remove fully covered files from report`,
+        '- Add "hide-summary: true" - to remove the summary report',
+      ]
+
+      if (!options.reportOnlyChangedFiles) {
+        warningsArr.push(
+          '- Add "report-only-changed-files: true" - to report only changed files and not all files'
+        )
+      }
+
+      if (!options.removeLinksToFiles) {
+        warningsArr.push(
+          '- Add "remove-links-to-files: true" - to remove links to files'
+        )
+      }
+
+      if (!options.removeLinksToLines) {
+        warningsArr.push(
+          '- Add "remove-links-to-lines: true" - to remove links to lines'
+        )
+      }
+
+      core.warning(warningsArr.join('\n'))
+    }
+
+    if (eventName === 'push') {
+      core.info('Create commit comment')
+
+      await octokit.rest.repos.createCommitComment({
+        repo,
+        owner,
+        commit_sha: options.commit,
+        body,
+      })
+    } else if (
+      eventName === 'pull_request' ||
+      eventName === 'pull_request_target'
+    ) {
+      if (options.createNewComment) {
+        core.info('Creating a new comment')
+
+        await octokit.rest.issues.createComment({
+          repo,
+          owner,
+          issue_number,
+          body,
+        })
+      } else {
+        // Now decide if we should issue a new comment or edit an old one
+        const { data: comments } = await octokit.rest.issues.listComments({
+          repo,
+          owner,
+          issue_number,
+        })
+
+        const comment = comments.find((c: { body?: string | null }) =>
+          c.body?.startsWith(options.watermark)
+        )
+
+        if (comment) {
+          core.info('Found previous comment, updating')
+          await octokit.rest.issues.updateComment({
+            repo,
+            owner,
+            comment_id: comment.id,
+            body,
+          })
+        } else {
+          core.info('No previous comment found, creating a new one')
+          await octokit.rest.issues.createComment({
+            repo,
+            owner,
+            issue_number,
+            body,
+          })
+        }
+      }
+    } else if (
+      eventName === 'workflow_dispatch' ||
+      eventName === 'workflow_run'
+    ) {
+      if (!options.issueNumber) {
+        // prettier-ignore
+        core.warning(`To use this action on a \`${eventName}\` event, you need to pass a pull request number using the 'issue-number' input.`)
+      } else {
+        if (options.createNewComment) {
+          core.info('Creating a new comment')
+          await octokit.rest.issues.createComment({
+            repo,
+            owner,
+            issue_number,
+            body,
+          })
+        } else {
+          // Now decide if we should issue a new comment or edit an old one
+          const { data: comments } = await octokit.rest.issues.listComments({
+            repo,
+            owner,
+            issue_number,
+          })
+
+          const comment = comments.find((c: { body?: string | null }) =>
+            c.body?.startsWith(options.watermark)
+          )
+
+          if (comment) {
+            core.info('Found previous comment, updating')
+            await octokit.rest.issues.updateComment({
+              repo,
+              owner,
+              comment_id: comment.id,
+              body,
+            })
+          } else {
+            core.info('No previous comment found, creating a new one')
+            await octokit.rest.issues.createComment({
+              repo,
+              owner,
+              issue_number,
+              body,
+            })
+          }
+        }
+      }
+    } else {
+      if (!options.hideComment) {
+        // prettier-ignore
+        core.warning(`This action supports comments only on 'pull_request', 'pull_request_target', 'push', 'workflow_dispatch' and 'workflow_run' events. '${eventName}' events are not supported.\nYou can use the output of the action.`)
+      }
+    }
+  } catch (error) {
+    if (error instanceof Error) {
+      core.error(error.message)
+    }
+  }
+}

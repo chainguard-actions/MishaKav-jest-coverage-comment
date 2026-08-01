@@ -1,0 +1,50 @@
+name: Test High Coverage (100%)
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create 100% coverage summary file
+        run: |
+          mkdir -p coverage
+          cat > coverage/coverage-summary.json << 'EOF'
+          {
+            "total": {
+              "lines": { "total": 100, "covered": 100, "skipped": 0, "pct": 100 },
+              "statements": { "total": 100, "covered": 100, "skipped": 0, "pct": 100 },
+              "functions": { "total": 50, "covered": 50, "skipped": 0, "pct": 100 },
+              "branches": { "total": 60, "covered": 60, "skipped": 0, "pct": 100 }
+            }
+          }
+          EOF
+
+      - id: coverage
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: ./coverage/coverage-summary.json
+          hide-comment: 'true'
+          badge-title: 'Test Coverage'
+
+      - name: Assert 100% coverage output
+        env:
+          COVERAGE: ${{ steps.coverage.outputs.coverage }}
+          COLOR: ${{ steps.coverage.outputs.color }}
+        run: |
+          echo "coverage: $COVERAGE"
+          echo "color: $COLOR"
+
+          if [ "$COVERAGE" != "100" ]; then
+            echo "FAIL: expected coverage '100' but got '$COVERAGE'"
+            exit 1
+          fi
+          echo "PASS: coverage is 100"
+
+          if [ -z "$COLOR" ]; then
+            echo "FAIL: color output is empty"
+            exit 1
+          fi
+          echo "PASS: color is '$COLOR'"

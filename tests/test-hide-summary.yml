@@ -1,0 +1,54 @@
+name: Test Hide Summary Option
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create coverage summary file
+        run: |
+          mkdir -p coverage
+          cat > coverage/coverage-summary.json << 'EOF'
+          {
+            "total": {
+              "lines": { "total": 200, "covered": 150, "skipped": 0, "pct": 75 },
+              "statements": { "total": 220, "covered": 165, "skipped": 0, "pct": 75 },
+              "functions": { "total": 40, "covered": 30, "skipped": 0, "pct": 75 },
+              "branches": { "total": 60, "covered": 45, "skipped": 0, "pct": 75 }
+            }
+          }
+          EOF
+
+      - id: coverage
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: ./coverage/coverage-summary.json
+          title: 'My Project Coverage'
+          summary-title: 'Coverage Summary'
+          badge-title: 'Coverage'
+          hide-summary: 'true'
+          hide-comment: 'true'
+          text-instead-badge: 'false'
+
+      - name: Assert coverage output with hide-summary
+        env:
+          COVERAGE: ${{ steps.coverage.outputs.coverage }}
+          COLOR: ${{ steps.coverage.outputs.color }}
+        run: |
+          echo "coverage: $COVERAGE"
+          echo "color: $COLOR"
+
+          if [ -z "$COVERAGE" ]; then
+            echo "FAIL: coverage output is empty even with hide-summary=true"
+            exit 1
+          fi
+          echo "PASS: coverage output is '$COVERAGE'"
+
+          if [ "$COVERAGE" != "75" ]; then
+            echo "FAIL: expected coverage '75' but got '$COVERAGE'"
+            exit 1
+          fi
+          echo "PASS: coverage is 75 as expected"

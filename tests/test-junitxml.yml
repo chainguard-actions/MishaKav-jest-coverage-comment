@@ -1,0 +1,74 @@
+name: Test JUnit XML Report
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create coverage summary and junit xml files
+        run: |
+          mkdir -p coverage
+
+          cat > coverage/coverage-summary.json << 'EOF'
+          {
+            "total": {
+              "lines": { "total": 50, "covered": 40, "skipped": 0, "pct": 80 },
+              "statements": { "total": 60, "covered": 48, "skipped": 0, "pct": 80 },
+              "functions": { "total": 20, "covered": 16, "skipped": 0, "pct": 80 },
+              "branches": { "total": 30, "covered": 24, "skipped": 0, "pct": 80 }
+            }
+          }
+          EOF
+
+          cat > coverage/junit.xml << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <testsuites name="jest tests" tests="10" failures="1" errors="0" time="5.123" skipped="2">
+            <testsuite name="MyTestSuite" tests="10" failures="1" errors="0" time="5.123" skipped="2">
+              <testcase classname="MyTestSuite" name="test 1" time="0.5">
+              </testcase>
+              <testcase classname="MyTestSuite" name="test 2" time="0.3">
+                <failure message="Expected true to be false">AssertionError</failure>
+              </testcase>
+              <testcase classname="MyTestSuite" name="test 3" time="0.1">
+                <skipped/>
+              </testcase>
+            </testsuite>
+          </testsuites>
+          EOF
+
+      - id: coverage
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: ./coverage/coverage-summary.json
+          junitxml-path: ./coverage/junit.xml
+          junitxml-title: 'Test Results'
+          hide-comment: 'true'
+
+      - name: Assert junit outputs
+        env:
+          TESTS: ${{ steps.coverage.outputs.tests }}
+          SKIPPED: ${{ steps.coverage.outputs.skipped }}
+          FAILURES: ${{ steps.coverage.outputs.failures }}
+          ERRORS: ${{ steps.coverage.outputs.errors }}
+          TIME: ${{ steps.coverage.outputs.time }}
+        run: |
+          echo "tests: $TESTS"
+          echo "skipped: $SKIPPED"
+          echo "failures: $FAILURES"
+          echo "errors: $ERRORS"
+          echo "time: $TIME"
+
+          if [ -z "$TESTS" ]; then
+            echo "FAIL: tests output is empty"
+            exit 1
+          fi
+          echo "PASS: tests output is '$TESTS'"
+
+          if [ -z "$TIME" ]; then
+            echo "FAIL: time output is empty"
+            exit 1
+          fi
+          echo "PASS: time output is '$TIME'"
