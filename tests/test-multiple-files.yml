@@ -1,0 +1,81 @@
+name: Test multiple coverage files
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create multiple coverage-summary files
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/coverage/frontend" "$GITHUB_WORKSPACE/coverage/backend"
+
+          cat > "$GITHUB_WORKSPACE/coverage/frontend/coverage-summary.json" << 'EOF'
+          {
+            "total": {
+              "lines": { "total": 100, "covered": 85, "skipped": 0, "pct": 85 },
+              "statements": { "total": 110, "covered": 93, "skipped": 0, "pct": 84.5 },
+              "functions": { "total": 20, "covered": 17, "skipped": 0, "pct": 85 },
+              "branches": { "total": 30, "covered": 25, "skipped": 0, "pct": 83.3 }
+            }
+          }
+          EOF
+
+          cat > "$GITHUB_WORKSPACE/coverage/backend/coverage-summary.json" << 'EOF'
+          {
+            "total": {
+              "lines": { "total": 200, "covered": 160, "skipped": 0, "pct": 80 },
+              "statements": { "total": 220, "covered": 176, "skipped": 0, "pct": 80 },
+              "functions": { "total": 40, "covered": 32, "skipped": 0, "pct": 80 },
+              "branches": { "total": 60, "covered": 48, "skipped": 0, "pct": 80 }
+            }
+          }
+          EOF
+
+          # Also create the default coverage-summary.json so summaryHtml output gets set
+          mkdir -p "$GITHUB_WORKSPACE/coverage"
+          cat > "$GITHUB_WORKSPACE/coverage/coverage-summary.json" << 'EOF'
+          {
+            "total": {
+              "lines": { "total": 300, "covered": 245, "skipped": 0, "pct": 81.67 },
+              "statements": { "total": 330, "covered": 269, "skipped": 0, "pct": 81.52 },
+              "functions": { "total": 60, "covered": 49, "skipped": 0, "pct": 81.67 },
+              "branches": { "total": 90, "covered": 73, "skipped": 0, "pct": 81.11 }
+            }
+          }
+          EOF
+
+          echo "Created all coverage files"
+
+      - id: action
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: ./coverage/coverage-summary.json
+          multiple-files: |
+            Frontend, ./coverage/frontend/coverage-summary.json
+            Backend, ./coverage/backend/coverage-summary.json
+          hide-comment: 'true'
+
+      - name: Assert coverage output is set
+        env:
+          ACTUAL_COVERAGE: ${{ steps.action.outputs.coverage }}
+        run: |
+          echo "coverage: $ACTUAL_COVERAGE"
+          if [ -z "$ACTUAL_COVERAGE" ]; then
+            echo "FAIL: expected coverage output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: coverage=$ACTUAL_COVERAGE"
+
+      - name: Assert summaryHtml is produced
+        env:
+          ACTUAL_HTML: ${{ steps.action.outputs.summaryHtml }}
+        run: |
+          echo "summaryHtml length: ${#ACTUAL_HTML}"
+          if [ -z "$ACTUAL_HTML" ]; then
+            echo "FAIL: expected summaryHtml to be non-empty"
+            exit 1
+          fi
+          echo "PASS: summaryHtml is present"

@@ -1,0 +1,89 @@
+name: Test coverage text report parsing
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create coverage.txt (Jest console output)
+        run: |
+          cat > "$GITHUB_WORKSPACE/coverage.txt" << 'EOF'
+          ----------------------|---------|----------|---------|---------|-------------------
+          File                  | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
+          ----------------------|---------|----------|---------|---------|-------------------
+          All files             |   82.35 |    77.27 |      80 |   83.33 |
+           src                  |   82.35 |    77.27 |      80 |   83.33 |
+            index.js            |   82.35 |    77.27 |      80 |   83.33 | 45-50
+          ----------------------|---------|----------|---------|---------|-------------------
+          EOF
+          echo "Created coverage.txt"
+
+      - name: Create coverage-summary.json
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/coverage"
+          cat > "$GITHUB_WORKSPACE/coverage/coverage-summary.json" << 'EOF'
+          {
+            "total": {
+              "lines": { "total": 100, "covered": 83, "skipped": 0, "pct": 83.33 },
+              "statements": { "total": 100, "covered": 82, "skipped": 0, "pct": 82.35 },
+              "functions": { "total": 20, "covered": 16, "skipped": 0, "pct": 80 },
+              "branches": { "total": 44, "covered": 34, "skipped": 0, "pct": 77.27 }
+            }
+          }
+          EOF
+          echo "Created coverage-summary.json"
+
+      - id: action
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: ./coverage/coverage-summary.json
+          coverage-path: ./coverage.txt
+          coverage-title: 'My Coverage Report'
+          hide-comment: 'true'
+
+      - name: Assert lines output from text report
+        env:
+          ACTUAL_LINES: ${{ steps.action.outputs.lines }}
+        run: |
+          echo "lines: $ACTUAL_LINES"
+          if [ -z "$ACTUAL_LINES" ]; then
+            echo "FAIL: expected lines output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: lines=$ACTUAL_LINES"
+
+      - name: Assert branches output from text report
+        env:
+          ACTUAL_BRANCHES: ${{ steps.action.outputs.branches }}
+        run: |
+          echo "branches: $ACTUAL_BRANCHES"
+          if [ -z "$ACTUAL_BRANCHES" ]; then
+            echo "FAIL: expected branches output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: branches=$ACTUAL_BRANCHES"
+
+      - name: Assert functions output from text report
+        env:
+          ACTUAL_FUNCTIONS: ${{ steps.action.outputs.functions }}
+        run: |
+          echo "functions: $ACTUAL_FUNCTIONS"
+          if [ -z "$ACTUAL_FUNCTIONS" ]; then
+            echo "FAIL: expected functions output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: functions=$ACTUAL_FUNCTIONS"
+
+      - name: Assert statements output from text report
+        env:
+          ACTUAL_STATEMENTS: ${{ steps.action.outputs.statements }}
+        run: |
+          echo "statements: $ACTUAL_STATEMENTS"
+          if [ -z "$ACTUAL_STATEMENTS" ]; then
+            echo "FAIL: expected statements output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: statements=$ACTUAL_STATEMENTS"

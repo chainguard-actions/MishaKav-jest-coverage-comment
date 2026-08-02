@@ -1,0 +1,111 @@
+name: Test junitxml parsing outputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create coverage-summary.json
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/coverage"
+          cat > "$GITHUB_WORKSPACE/coverage/coverage-summary.json" << 'EOF'
+          {
+            "total": {
+              "lines": { "total": 100, "covered": 70, "skipped": 0, "pct": 70 },
+              "statements": { "total": 100, "covered": 70, "skipped": 0, "pct": 70 },
+              "functions": { "total": 20, "covered": 14, "skipped": 0, "pct": 70 },
+              "branches": { "total": 30, "covered": 21, "skipped": 0, "pct": 70 }
+            }
+          }
+          EOF
+          echo "Created coverage-summary.json"
+
+      - name: Create junit.xml
+        run: |
+          cat > "$GITHUB_WORKSPACE/junit.xml" << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <testsuites name="jest tests" tests="42" failures="2" errors="1" time="5.678">
+            <testsuite name="src/app.test.js" tests="20" failures="1" errors="0" time="2.5" skipped="1">
+              <testcase classname="src/app.test.js" name="should render correctly" time="0.5">
+              </testcase>
+              <testcase classname="src/app.test.js" name="should handle errors" time="0.3">
+                <failure message="Expected true to be false">AssertionError: Expected true to be false</failure>
+              </testcase>
+            </testsuite>
+            <testsuite name="src/utils.test.js" tests="22" failures="1" errors="1" time="3.178" skipped="2">
+              <testcase classname="src/utils.test.js" name="should format date" time="0.2">
+              </testcase>
+              <testcase classname="src/utils.test.js" name="should parse input" time="0.1">
+                <failure message="Expected 1 to equal 2">AssertionError: Expected 1 to equal 2</failure>
+              </testcase>
+            </testsuite>
+          </testsuites>
+          EOF
+          echo "Created junit.xml"
+
+      - id: action
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: ./coverage/coverage-summary.json
+          junitxml-path: ./junit.xml
+          junitxml-title: 'Test Results'
+          hide-comment: 'true'
+
+      - name: Assert tests output
+        env:
+          ACTUAL_TESTS: ${{ steps.action.outputs.tests }}
+        run: |
+          echo "tests: $ACTUAL_TESTS"
+          if [ -z "$ACTUAL_TESTS" ]; then
+            echo "FAIL: expected tests output to be non-empty"
+            exit 1
+          fi
+          if [ "$ACTUAL_TESTS" != "42" ]; then
+            echo "FAIL: expected tests=42, got '$ACTUAL_TESTS'"
+            exit 1
+          fi
+          echo "PASS: tests=$ACTUAL_TESTS"
+
+      - name: Assert failures output
+        env:
+          ACTUAL_FAILURES: ${{ steps.action.outputs.failures }}
+        run: |
+          echo "failures: $ACTUAL_FAILURES"
+          if [ -z "$ACTUAL_FAILURES" ]; then
+            echo "FAIL: expected failures output to be non-empty"
+            exit 1
+          fi
+          if [ "$ACTUAL_FAILURES" != "2" ]; then
+            echo "FAIL: expected failures=2, got '$ACTUAL_FAILURES'"
+            exit 1
+          fi
+          echo "PASS: failures=$ACTUAL_FAILURES"
+
+      - name: Assert skipped output
+        env:
+          ACTUAL_SKIPPED: ${{ steps.action.outputs.skipped }}
+        run: |
+          echo "skipped: $ACTUAL_SKIPPED"
+          if [ -z "$ACTUAL_SKIPPED" ]; then
+            echo "FAIL: expected skipped output to be non-empty"
+            exit 1
+          fi
+          if [ "$ACTUAL_SKIPPED" != "3" ]; then
+            echo "FAIL: expected skipped=3, got '$ACTUAL_SKIPPED'"
+            exit 1
+          fi
+          echo "PASS: skipped=$ACTUAL_SKIPPED"
+
+      - name: Assert time output
+        env:
+          ACTUAL_TIME: ${{ steps.action.outputs.time }}
+        run: |
+          echo "time: $ACTUAL_TIME"
+          if [ -z "$ACTUAL_TIME" ]; then
+            echo "FAIL: expected time output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: time=$ACTUAL_TIME"

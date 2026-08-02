@@ -1,0 +1,71 @@
+name: Test summary HTML output
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create coverage-summary.json with high coverage
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/coverage"
+          cat > "$GITHUB_WORKSPACE/coverage/coverage-summary.json" << 'EOF'
+          {
+            "total": {
+              "lines": { "total": 200, "covered": 190, "skipped": 0, "pct": 95 },
+              "statements": { "total": 250, "covered": 237, "skipped": 0, "pct": 94.8 },
+              "functions": { "total": 50, "covered": 48, "skipped": 0, "pct": 96 },
+              "branches": { "total": 80, "covered": 76, "skipped": 0, "pct": 95 }
+            },
+            "src/app.js": {
+              "lines": { "total": 100, "covered": 95, "skipped": 0, "pct": 95 },
+              "statements": { "total": 125, "covered": 118, "skipped": 0, "pct": 94.4 },
+              "functions": { "total": 25, "covered": 24, "skipped": 0, "pct": 96 },
+              "branches": { "total": 40, "covered": 38, "skipped": 0, "pct": 95 }
+            },
+            "src/utils.js": {
+              "lines": { "total": 100, "covered": 95, "skipped": 0, "pct": 95 },
+              "statements": { "total": 125, "covered": 119, "skipped": 0, "pct": 95.2 },
+              "functions": { "total": 25, "covered": 24, "skipped": 0, "pct": 96 },
+              "branches": { "total": 40, "covered": 38, "skipped": 0, "pct": 95 }
+            }
+          }
+          EOF
+          echo "Created coverage-summary.json"
+
+      - id: action
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: ./coverage/coverage-summary.json
+          summary-title: 'Test Coverage Summary'
+          hide-comment: 'true'
+
+      - name: Assert summaryHtml output is non-empty
+        env:
+          ACTUAL_HTML: ${{ steps.action.outputs.summaryHtml }}
+          ACTUAL_COVERAGE: ${{ steps.action.outputs.coverage }}
+        run: |
+          echo "coverage: $ACTUAL_COVERAGE"
+          echo "summaryHtml length: ${#ACTUAL_HTML}"
+          if [ -z "$ACTUAL_HTML" ]; then
+            echo "FAIL: expected summaryHtml to be non-empty"
+            exit 1
+          fi
+          echo "PASS: summaryHtml is present"
+
+      - name: Assert high coverage color is green
+        env:
+          ACTUAL_COLOR: ${{ steps.action.outputs.color }}
+        run: |
+          echo "color: $ACTUAL_COLOR"
+          if [ -z "$ACTUAL_COLOR" ]; then
+            echo "FAIL: expected color output to be non-empty"
+            exit 1
+          fi
+          # High coverage (95%) should produce a green color
+          if [ "$ACTUAL_COLOR" != "green" ] && [ "$ACTUAL_COLOR" != "brightgreen" ]; then
+            echo "WARN: expected green/brightgreen for 95% coverage, got '$ACTUAL_COLOR'"
+          fi
+          echo "PASS: color=$ACTUAL_COLOR"

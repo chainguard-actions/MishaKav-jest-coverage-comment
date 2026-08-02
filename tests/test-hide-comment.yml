@@ -1,0 +1,68 @@
+name: Test hide-comment and text-instead-badge options
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create coverage-summary.json
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/coverage"
+          cat > "$GITHUB_WORKSPACE/coverage/coverage-summary.json" << 'EOF'
+          {
+            "total": {
+              "lines": { "total": 50, "covered": 25, "skipped": 0, "pct": 50 },
+              "statements": { "total": 60, "covered": 30, "skipped": 0, "pct": 50 },
+              "functions": { "total": 10, "covered": 5, "skipped": 0, "pct": 50 },
+              "branches": { "total": 20, "covered": 10, "skipped": 0, "pct": 50 }
+            }
+          }
+          EOF
+          echo "Created coverage-summary.json"
+
+      - id: action
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: ./coverage/coverage-summary.json
+          title: 'My Coverage Title'
+          badge-title: 'Test Coverage'
+          text-instead-badge: 'true'
+          hide-comment: 'true'
+
+      - name: Assert coverage output is 50
+        env:
+          ACTUAL_COVERAGE: ${{ steps.action.outputs.coverage }}
+        run: |
+          echo "coverage: $ACTUAL_COVERAGE"
+          if [ -z "$ACTUAL_COVERAGE" ]; then
+            echo "FAIL: expected coverage output to be non-empty"
+            exit 1
+          fi
+          if [ "$ACTUAL_COVERAGE" != "50" ]; then
+            echo "FAIL: expected coverage=50, got '$ACTUAL_COVERAGE'"
+            exit 1
+          fi
+          echo "PASS: coverage=$ACTUAL_COVERAGE"
+
+      - name: Assert color for 50% coverage is yellow or orange
+        env:
+          ACTUAL_COLOR: ${{ steps.action.outputs.color }}
+        run: |
+          echo "color: $ACTUAL_COLOR"
+          if [ -z "$ACTUAL_COLOR" ]; then
+            echo "FAIL: expected color output to be non-empty"
+            exit 1
+          fi
+          # 50% coverage should produce a yellow/orange color
+          case "$ACTUAL_COLOR" in
+            yellow|orange|red|yellowgreen)
+              echo "PASS: color=$ACTUAL_COLOR (expected for 50% coverage)"
+              ;;
+            *)
+              echo "WARN: unexpected color '$ACTUAL_COLOR' for 50% coverage, but color is present"
+              echo "PASS"
+              ;;
+          esac

@@ -1,0 +1,65 @@
+name: Test basic coverage output
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create coverage-summary.json
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/coverage"
+          cat > "$GITHUB_WORKSPACE/coverage/coverage-summary.json" << 'EOF'
+          {
+            "total": {
+              "lines": { "total": 100, "covered": 80, "skipped": 0, "pct": 80 },
+              "statements": { "total": 120, "covered": 96, "skipped": 0, "pct": 80 },
+              "functions": { "total": 30, "covered": 24, "skipped": 0, "pct": 80 },
+              "branches": { "total": 40, "covered": 32, "skipped": 0, "pct": 80 }
+            },
+            "src/index.js": {
+              "lines": { "total": 100, "covered": 80, "skipped": 0, "pct": 80 },
+              "statements": { "total": 120, "covered": 96, "skipped": 0, "pct": 80 },
+              "functions": { "total": 30, "covered": 24, "skipped": 0, "pct": 80 },
+              "branches": { "total": 40, "covered": 32, "skipped": 0, "pct": 80 }
+            }
+          }
+          EOF
+          echo "Created coverage-summary.json:"
+          cat "$GITHUB_WORKSPACE/coverage/coverage-summary.json"
+
+      - id: action
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: ./coverage/coverage-summary.json
+          hide-comment: 'true'
+
+      - name: Assert coverage output
+        env:
+          ACTUAL_COVERAGE: ${{ steps.action.outputs.coverage }}
+          ACTUAL_COLOR: ${{ steps.action.outputs.color }}
+        run: |
+          echo "coverage: $ACTUAL_COVERAGE"
+          echo "color: $ACTUAL_COLOR"
+          if [ -z "$ACTUAL_COVERAGE" ]; then
+            echo "FAIL: expected coverage output to be non-empty"
+            exit 1
+          fi
+          if [ "$ACTUAL_COVERAGE" != "80" ]; then
+            echo "FAIL: expected coverage to be 80, got '$ACTUAL_COVERAGE'"
+            exit 1
+          fi
+          echo "PASS: coverage=$ACTUAL_COVERAGE color=$ACTUAL_COLOR"
+
+      - name: Assert color output
+        env:
+          ACTUAL_COLOR: ${{ steps.action.outputs.color }}
+        run: |
+          echo "color: $ACTUAL_COLOR"
+          if [ -z "$ACTUAL_COLOR" ]; then
+            echo "FAIL: expected color output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: color=$ACTUAL_COLOR"
