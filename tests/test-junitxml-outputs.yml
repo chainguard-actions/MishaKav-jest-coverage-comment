@@ -1,0 +1,87 @@
+name: Test junitxml outputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create coverage-summary.json
+        run: |
+          mkdir -p coverage
+          cat > coverage/coverage-summary.json << 'EOF'
+          {
+            "total": {
+              "lines": { "total": 100, "covered": 70, "skipped": 0, "pct": 70 },
+              "statements": { "total": 100, "covered": 70, "skipped": 0, "pct": 70 },
+              "functions": { "total": 20, "covered": 14, "skipped": 0, "pct": 70 },
+              "branches": { "total": 30, "covered": 21, "skipped": 0, "pct": 70 }
+            }
+          }
+          EOF
+
+      - name: Create junit.xml
+        run: |
+          cat > junit.xml << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <testsuites name="jest tests" tests="42" failures="2" errors="1" time="5.678">
+            <testsuite name="Suite 1" tests="20" failures="1" errors="0" skipped="3" time="2.5">
+              <testcase name="test 1" classname="Suite 1" time="0.1"/>
+              <testcase name="test 2" classname="Suite 1" time="0.2">
+                <failure message="Expected true to be false">AssertionError</failure>
+              </testcase>
+            </testsuite>
+            <testsuite name="Suite 2" tests="22" failures="1" errors="1" skipped="2" time="3.178">
+              <testcase name="test 3" classname="Suite 2" time="0.3"/>
+              <testcase name="test 4" classname="Suite 2" time="0.4">
+                <failure message="Expected 1 to equal 2">AssertionError</failure>
+              </testcase>
+              <testcase name="test 5" classname="Suite 2" time="0.5">
+                <error message="Unexpected error">Error</error>
+              </testcase>
+            </testsuite>
+          </testsuites>
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: ./coverage/coverage-summary.json
+          junitxml-path: ./junit.xml
+          junitxml-title: 'Test Results'
+          hide-comment: 'true'
+
+      - name: Assert tests output
+        env:
+          TESTS: ${{ steps.action.outputs.tests }}
+        run: |
+          echo "tests: $TESTS"
+          if [ -z "$TESTS" ]; then
+            echo "FAIL: tests output is empty"
+            exit 1
+          fi
+          echo "PASS: tests output is '$TESTS'"
+
+      - name: Assert failures output
+        env:
+          FAILURES: ${{ steps.action.outputs.failures }}
+        run: |
+          echo "failures: $FAILURES"
+          if [ -z "$FAILURES" ]; then
+            echo "FAIL: failures output is empty"
+            exit 1
+          fi
+          echo "PASS: failures output is '$FAILURES'"
+
+      - name: Assert time output
+        env:
+          TIME: ${{ steps.action.outputs.time }}
+        run: |
+          echo "time: $TIME"
+          if [ -z "$TIME" ]; then
+            echo "FAIL: time output is empty"
+            exit 1
+          fi
+          echo "PASS: time output is '$TIME'"

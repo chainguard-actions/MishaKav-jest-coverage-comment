@@ -1,0 +1,52 @@
+name: Test title input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create coverage summary file
+        run: |
+          mkdir -p coverage
+          cat > coverage/coverage-summary.json << 'EOF'
+          {
+            "total": {
+              "lines": { "total": 100, "covered": 85, "skipped": 0, "pct": 85 },
+              "statements": { "total": 120, "covered": 100, "skipped": 0, "pct": 83.33 },
+              "functions": { "total": 30, "covered": 25, "skipped": 0, "pct": 83.33 },
+              "branches": { "total": 40, "covered": 32, "skipped": 0, "pct": 80 }
+            }
+          }
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          title: 'My Custom Coverage Title'
+          coverage-summary-path: './coverage/coverage-summary.json'
+          hide-comment: 'true'
+
+      - name: Assert coverage output is set
+        env:
+          ACTUAL: ${{ steps.action.outputs.coverage }}
+        run: |
+          echo "actual coverage: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: expected coverage output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: coverage output is '$ACTUAL'"
+
+      - name: Assert color output is set
+        env:
+          ACTUAL: ${{ steps.action.outputs.color }}
+        run: |
+          echo "actual color: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: expected color output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: color output is '$ACTUAL'"

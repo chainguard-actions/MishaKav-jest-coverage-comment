@@ -1,0 +1,49 @@
+name: Test low coverage (below 50%)
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: push
+      GITHUB_REF: refs/heads/main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create low coverage summary file
+        run: |
+          mkdir -p ./coverage
+          cat > ./coverage/coverage-summary.json << 'EOF'
+          {
+            "total": {
+              "lines": { "total": 100, "covered": 30, "skipped": 0, "pct": 30 },
+              "statements": { "total": 120, "covered": 36, "skipped": 0, "pct": 30 },
+              "functions": { "total": 30, "covered": 9, "skipped": 0, "pct": 30 },
+              "branches": { "total": 40, "covered": 12, "skipped": 0, "pct": 30 }
+            }
+          }
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: ./coverage/coverage-summary.json
+          hide-comment: 'true'
+
+      - name: Assert low coverage output
+        env:
+          COVERAGE: ${{ steps.action.outputs.coverage }}
+          COLOR: ${{ steps.action.outputs.color }}
+        run: |
+          echo "coverage: $COVERAGE"
+          echo "color: $COLOR"
+          if [ "$COVERAGE" != "30" ]; then
+            echo "FAIL: expected coverage '30', got '$COVERAGE'"
+            exit 1
+          fi
+          if [ "$COLOR" != "red" ]; then
+            echo "FAIL: expected color 'red' for 30% coverage, got '$COLOR'"
+            exit 1
+          fi
+          echo "PASS"

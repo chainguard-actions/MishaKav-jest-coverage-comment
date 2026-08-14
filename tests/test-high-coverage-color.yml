@@ -1,0 +1,58 @@
+name: Test high coverage color output
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create coverage-summary.json with high coverage
+        run: |
+          mkdir -p coverage
+          cat > coverage/coverage-summary.json << 'EOF'
+          {
+            "total": {
+              "lines": { "total": 100, "covered": 95, "skipped": 0, "pct": 95 },
+              "statements": { "total": 100, "covered": 95, "skipped": 0, "pct": 95 },
+              "functions": { "total": 50, "covered": 48, "skipped": 0, "pct": 96 },
+              "branches": { "total": 60, "covered": 57, "skipped": 0, "pct": 95 }
+            }
+          }
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: ./coverage/coverage-summary.json
+          hide-comment: 'true'
+
+      - name: Assert coverage is 95
+        env:
+          COVERAGE: ${{ steps.action.outputs.coverage }}
+        run: |
+          echo "coverage: $COVERAGE"
+          if [ "$COVERAGE" != "95" ]; then
+            echo "FAIL: expected coverage '95', got '$COVERAGE'"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert color is green for high coverage
+        env:
+          COLOR: ${{ steps.action.outputs.color }}
+        run: |
+          echo "color: $COLOR"
+          # High coverage (>=90%) should produce a green-family color
+          if [ -z "$COLOR" ]; then
+            echo "FAIL: color output is empty"
+            exit 1
+          fi
+          # Accept brightgreen or green
+          if echo "$COLOR" | grep -qiE 'green'; then
+            echo "PASS: color '$COLOR' is green-family as expected for high coverage"
+          else
+            echo "FAIL: expected green-family color for 95% coverage, got '$COLOR'"
+            exit 1
+          fi

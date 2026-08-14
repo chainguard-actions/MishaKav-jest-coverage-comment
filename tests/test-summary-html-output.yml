@@ -1,0 +1,56 @@
+name: Test summaryHtml output
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: push
+      GITHUB_REF: refs/heads/main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create coverage summary file
+        run: |
+          mkdir -p ./coverage
+          cat > ./coverage/coverage-summary.json << 'EOF'
+          {
+            "total": {
+              "lines": { "total": 200, "covered": 150, "skipped": 0, "pct": 75 },
+              "statements": { "total": 240, "covered": 180, "skipped": 0, "pct": 75 },
+              "functions": { "total": 60, "covered": 45, "skipped": 0, "pct": 75 },
+              "branches": { "total": 80, "covered": 60, "skipped": 0, "pct": 75 }
+            },
+            "src/index.js": {
+              "lines": { "total": 100, "covered": 75, "skipped": 0, "pct": 75 },
+              "statements": { "total": 120, "covered": 90, "skipped": 0, "pct": 75 },
+              "functions": { "total": 30, "covered": 22, "skipped": 0, "pct": 73.33 },
+              "branches": { "total": 40, "covered": 30, "skipped": 0, "pct": 75 }
+            }
+          }
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: ./coverage/coverage-summary.json
+          hide-comment: 'true'
+          summary-title: 'My Coverage Summary'
+
+      - name: Assert summaryHtml output is non-empty
+        env:
+          SUMMARY_HTML: ${{ steps.action.outputs.summaryHtml }}
+          COVERAGE: ${{ steps.action.outputs.coverage }}
+        run: |
+          echo "coverage: $COVERAGE"
+          echo "summaryHtml length: ${#SUMMARY_HTML}"
+          if [ -z "$SUMMARY_HTML" ]; then
+            echo "FAIL: summaryHtml output is empty"
+            exit 1
+          fi
+          if [ "$COVERAGE" != "75" ]; then
+            echo "FAIL: expected coverage '75', got '$COVERAGE'"
+            exit 1
+          fi
+          echo "PASS"

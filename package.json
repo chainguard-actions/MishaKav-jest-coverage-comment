@@ -1,0 +1,58 @@
+{
+  "name": "jest-coverage-comment",
+  "version": "1.0.34",
+  "description": "Comments a pull request or commit with the jest code coverage badge, full report and tests summary",
+  "author": "Misha Kav <misha.kav@gmail.com>",
+  "license": "MIT",
+  "keywords": [
+    "actions",
+    "pull-request",
+    "comment",
+    "message",
+    "coverage",
+    "jest",
+    "junit"
+  ],
+  "bugs": {
+    "url": "https://github.com/MishaKav/jest-coverage-comment/issues"
+  },
+  "homepage": "https://github.com/MishaKav/jest-coverage-comment/#readme",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc",
+    "format": "prettier --write **/*.ts",
+    "format-check": "prettier --check **/*.ts",
+    "lint": "eslint **/*.ts",
+    "bump-version": "npm version patch",
+    "package": "ncc build --source-map --license licenses.txt",
+    "test": "jest",
+    "test:coverage": "npm test -- --coverage",
+    "test:coverage:tee": "npm run test:coverage | tee ./coverage/covergate.txt",
+    "update-v1-tag": "git tag v1 -f && git push origin v1 -f",
+    "all": "npm run build && npm run format && npm run lint && npm run package && npm test"
+  },
+  "dependencies": {
+    "@actions/core": "^2.0.3",
+    "@actions/github": "^8.0.1",
+    "strip-ansi": "^6.0.1",
+    "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^26.0.1",
+    "@types/xml2js": "^0.4.14",
+    "@typescript-eslint/eslint-plugin": "^8.58.2",
+    "@typescript-eslint/parser": "^8.58.2",
+    "@vercel/ncc": "^0.44.0",
+    "babel-plugin-rewire": "^1.2.0",
+    "eslint": "^9.39.4",
+    "eslint-import-resolver-typescript": "^4.4.5",
+    "eslint-plugin-github": "^6.0.0",
+    "eslint-plugin-jest": "^29.15.3",
+    "jest-junit": "^17.0.0",
+    "prettier": "^3.9.0",
+    "ts-jest": "^29.4.11",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3"
+  }
+}

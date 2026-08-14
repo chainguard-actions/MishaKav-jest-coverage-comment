@@ -1,0 +1,75 @@
+name: Test multiple coverage files
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create multiple coverage-summary.json files
+        run: |
+          mkdir -p coverage/app coverage/lib
+          cat > coverage/app/coverage-summary.json << 'EOF'
+          {
+            "total": {
+              "lines": { "total": 100, "covered": 85, "skipped": 0, "pct": 85 },
+              "statements": { "total": 100, "covered": 85, "skipped": 0, "pct": 85 },
+              "functions": { "total": 20, "covered": 17, "skipped": 0, "pct": 85 },
+              "branches": { "total": 30, "covered": 25, "skipped": 0, "pct": 83.33 }
+            }
+          }
+          EOF
+          cat > coverage/lib/coverage-summary.json << 'EOF'
+          {
+            "total": {
+              "lines": { "total": 50, "covered": 40, "skipped": 0, "pct": 80 },
+              "statements": { "total": 50, "covered": 40, "skipped": 0, "pct": 80 },
+              "functions": { "total": 10, "covered": 8, "skipped": 0, "pct": 80 },
+              "branches": { "total": 20, "covered": 16, "skipped": 0, "pct": 80 }
+            }
+          }
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: ./coverage/app/coverage-summary.json
+          hide-comment: 'true'
+          multiple-files: |
+            App, ./coverage/app/coverage-summary.json
+            Lib, ./coverage/lib/coverage-summary.json
+
+      - name: Assert coverage output is set
+        env:
+          COVERAGE: ${{ steps.action.outputs.coverage }}
+        run: |
+          echo "coverage: $COVERAGE"
+          if [ -z "$COVERAGE" ]; then
+            echo "FAIL: coverage output is empty"
+            exit 1
+          fi
+          echo "PASS: coverage output is '$COVERAGE'"
+
+      - name: Assert summaryHtml output is non-empty
+        env:
+          SUMMARY_HTML: ${{ steps.action.outputs.summaryHtml }}
+        run: |
+          echo "summaryHtml length: ${#SUMMARY_HTML}"
+          if [ -z "$SUMMARY_HTML" ]; then
+            echo "FAIL: summaryHtml output is empty"
+            exit 1
+          fi
+          echo "PASS: summaryHtml is non-empty"
+
+      - name: Assert color output is set
+        env:
+          COLOR: ${{ steps.action.outputs.color }}
+        run: |
+          echo "color: $COLOR"
+          if [ -z "$COLOR" ]; then
+            echo "FAIL: color output is empty"
+            exit 1
+          fi
+          echo "PASS: color output is '$COLOR'"

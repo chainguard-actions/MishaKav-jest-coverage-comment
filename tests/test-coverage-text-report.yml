@@ -1,0 +1,87 @@
+name: Test coverage text report outputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create coverage.txt (Jest console output)
+        run: |
+          cat > coverage.txt << 'EOF'
+          ----------------------|---------|----------|---------|---------|-------------------
+          File                  | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
+          ----------------------|---------|----------|---------|---------|-------------------
+          All files             |   82.35 |    77.27 |      80 |   82.35 |
+           src                  |   82.35 |    77.27 |      80 |   82.35 |
+            index.js            |   82.35 |    77.27 |      80 |   82.35 | 45-50
+          ----------------------|---------|----------|---------|---------|-------------------
+          EOF
+
+      - name: Create coverage-summary.json
+        run: |
+          mkdir -p coverage
+          cat > coverage/coverage-summary.json << 'EOF'
+          {
+            "total": {
+              "lines": { "total": 100, "covered": 82, "skipped": 0, "pct": 82.35 },
+              "statements": { "total": 100, "covered": 82, "skipped": 0, "pct": 82.35 },
+              "functions": { "total": 20, "covered": 16, "skipped": 0, "pct": 80 },
+              "branches": { "total": 44, "covered": 34, "skipped": 0, "pct": 77.27 }
+            }
+          }
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: ./coverage/coverage-summary.json
+          coverage-path: ./coverage.txt
+          coverage-title: 'My Coverage Report'
+          hide-comment: 'true'
+
+      - name: Assert lines output
+        env:
+          LINES: ${{ steps.action.outputs.lines }}
+        run: |
+          echo "lines: $LINES"
+          if [ -z "$LINES" ]; then
+            echo "FAIL: lines output is empty"
+            exit 1
+          fi
+          echo "PASS: lines output is '$LINES'"
+
+      - name: Assert branches output
+        env:
+          BRANCHES: ${{ steps.action.outputs.branches }}
+        run: |
+          echo "branches: $BRANCHES"
+          if [ -z "$BRANCHES" ]; then
+            echo "FAIL: branches output is empty"
+            exit 1
+          fi
+          echo "PASS: branches output is '$BRANCHES'"
+
+      - name: Assert functions output
+        env:
+          FUNCTIONS: ${{ steps.action.outputs.functions }}
+        run: |
+          echo "functions: $FUNCTIONS"
+          if [ -z "$FUNCTIONS" ]; then
+            echo "FAIL: functions output is empty"
+            exit 1
+          fi
+          echo "PASS: functions output is '$FUNCTIONS'"
+
+      - name: Assert statements output
+        env:
+          STATEMENTS: ${{ steps.action.outputs.statements }}
+        run: |
+          echo "statements: $STATEMENTS"
+          if [ -z "$STATEMENTS" ]; then
+            echo "FAIL: statements output is empty"
+            exit 1
+          fi
+          echo "PASS: statements output is '$STATEMENTS'"

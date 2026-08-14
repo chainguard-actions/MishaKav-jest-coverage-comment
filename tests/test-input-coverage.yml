@@ -1,0 +1,54 @@
+name: Test input coverage (title input)
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: push
+      GITHUB_REF: refs/heads/main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create coverage summary file
+        run: |
+          mkdir -p ./coverage
+          cat > ./coverage/coverage-summary.json << 'EOF'
+          {
+            "total": {
+              "lines": { "total": 100, "covered": 90, "skipped": 0, "pct": 90 },
+              "statements": { "total": 120, "covered": 108, "skipped": 0, "pct": 90 },
+              "functions": { "total": 30, "covered": 27, "skipped": 0, "pct": 90 },
+              "branches": { "total": 40, "covered": 36, "skipped": 0, "pct": 90 }
+            }
+          }
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: ./coverage/coverage-summary.json
+          title: 'My Custom Coverage Title'
+          hide-comment: 'true'
+
+      - name: Assert coverage output with title input
+        env:
+          COVERAGE: ${{ steps.action.outputs.coverage }}
+          COLOR: ${{ steps.action.outputs.color }}
+        run: |
+          echo "coverage: $COVERAGE"
+          echo "color: $COLOR"
+          if [ -z "$COVERAGE" ]; then
+            echo "FAIL: coverage output is empty"
+            exit 1
+          fi
+          if [ "$COVERAGE" != "90" ]; then
+            echo "FAIL: expected coverage '90', got '$COVERAGE'"
+            exit 1
+          fi
+          if [ -z "$COLOR" ]; then
+            echo "FAIL: color output is empty"
+            exit 1
+          fi
+          echo "PASS"
