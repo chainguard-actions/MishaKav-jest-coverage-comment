@@ -10,7 +10,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 |---------|-----|-----------------|
 | v1.0.28 | [`v1.0.28`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.28) | — |
 | v1.0.29 | [`v1.0.29`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.29) | [`174f9cb`](https://github.com/MishaKav/jest-coverage-comment/commit/174f9cbf582b7cc2a7a3acce14dcfc8362e9d37f) |
-| v1.0.30 | [`v1.0.30`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.30) | — |
+| v1.0.30 | [`v1.0.30`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.30) | [`2a8fe30`](https://github.com/MishaKav/jest-coverage-comment/commit/2a8fe3083255756f3692599238ca251e858e15b2) |
 | v1.0.32 | [`v1.0.32`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.32) | — |
 | v1.0.33 | [`v1.0.33`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.33) | [`40d7aed`](https://github.com/MishaKav/jest-coverage-comment/commit/40d7aed38d0fbaea266c34c12ab06356eec894eb) |
 | v1.0.34 | [`v1.0.34`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.34) | [`25f2818`](https://github.com/MishaKav/jest-coverage-comment/commit/25f2818fee93043532f640ad32a7565b4bd4ea9a) |
