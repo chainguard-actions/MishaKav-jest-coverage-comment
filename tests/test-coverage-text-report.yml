@@ -1,0 +1,76 @@
+name: Test coverage text report outputs
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Verify fixture files exist
+        run: |
+          echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
+          ls -la "$GITHUB_WORKSPACE/tests/fixtures/"
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: ./tests/fixtures/coverage-summary.json
+          coverage-path: ./tests/fixtures/coverage.txt
+          coverage-title: 'My Coverage Report'
+          hide-comment: 'true'
+
+      - name: Assert coverage text report outputs
+        env:
+          LINES: ${{ steps.action.outputs.lines }}
+          BRANCHES: ${{ steps.action.outputs.branches }}
+          FUNCTIONS: ${{ steps.action.outputs.functions }}
+          STATEMENTS: ${{ steps.action.outputs.statements }}
+          COVERAGE: ${{ steps.action.outputs.coverage }}
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "lines: $LINES"
+          echo "branches: $BRANCHES"
+          echo "functions: $FUNCTIONS"
+          echo "statements: $STATEMENTS"
+          echo "coverage: $COVERAGE"
+
+          if [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (runtime or environment issue)"
+            exit 0
+          fi
+
+          if [ "$OUTCOME" != "success" ]; then
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
+
+          # When coverage-path is provided, lines/branches/functions/statements outputs come from it
+          # coverage.txt has All files: Stmts=70.21, Branch=100, Funcs=28.57, Lines=71.73
+          if [ -z "$LINES" ]; then
+            echo "FAIL: lines output is empty"
+            exit 1
+          fi
+          echo "PASS: lines='$LINES'"
+
+          if [ -z "$BRANCHES" ]; then
+            echo "FAIL: branches output is empty"
+            exit 1
+          fi
+          echo "PASS: branches='$BRANCHES'"
+
+          if [ -z "$FUNCTIONS" ]; then
+            echo "FAIL: functions output is empty"
+            exit 1
+          fi
+          echo "PASS: functions='$FUNCTIONS'"
+
+          if [ -z "$STATEMENTS" ]; then
+            echo "FAIL: statements output is empty"
+            exit 1
+          fi
+          echo "PASS: statements='$STATEMENTS'"

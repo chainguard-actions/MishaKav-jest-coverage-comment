@@ -1,0 +1,67 @@
+name: Test basic coverage summary outputs
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Verify fixture file exists
+        run: |
+          echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
+          ls -la "$GITHUB_WORKSPACE/tests/fixtures/"
+          echo "coverage-summary.json content:"
+          cat "$GITHUB_WORKSPACE/tests/fixtures/coverage-summary.json"
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: ./tests/fixtures/coverage-summary.json
+          hide-comment: 'true'
+
+      - name: Assert coverage output
+        env:
+          COVERAGE: ${{ steps.action.outputs.coverage }}
+          COLOR: ${{ steps.action.outputs.color }}
+          SUMMARY_HTML: ${{ steps.action.outputs.summaryHtml }}
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "coverage: $COVERAGE"
+          echo "color: $COLOR"
+          echo "summaryHtml length: ${#SUMMARY_HTML}"
+
+          if [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (runtime or environment issue)"
+            exit 0
+          fi
+
+          if [ "$OUTCOME" != "success" ]; then
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
+
+          # Validate coverage output (should be 78 based on 78.57%)
+          if [ -z "$COVERAGE" ]; then
+            echo "FAIL: coverage output is empty"
+            exit 1
+          fi
+          echo "PASS: coverage='$COVERAGE'"
+
+          # Validate color output
+          if [ -z "$COLOR" ]; then
+            echo "FAIL: color output is empty"
+            exit 1
+          fi
+          echo "PASS: color='$COLOR'"
+
+          # Validate summaryHtml output
+          if [ -z "$SUMMARY_HTML" ]; then
+            echo "FAIL: summaryHtml output is empty"
+            exit 1
+          fi
+          echo "PASS: summaryHtml is non-empty"

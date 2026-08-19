@@ -1,0 +1,101 @@
+name: Update Coverage in README
+on:
+  push:
+    paths-ignore:
+      - '**/*.md'
+      - '**/*.yml'
+      - '.github/**'
+      - 'data/**'
+      - 'dist/**'
+
+permissions:
+  contents: read
+
+jobs:
+  update-coverage-in-readme:
+    name: Update Coverage in README
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: NPM Cache
+        id: npm-cache
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm
+
+      - name: Install Dependencies
+        if: steps.npm-cache.outputs.cache-hit != 'true'
+        run: npm ci
+
+      - name: Check Format
+        run: npm run format-check
+
+      - name: Check Lint
+        run: npm run lint
+
+      - name: Check Build
+        run: npm run build
+
+      - name: Run Tests
+        run: npm run test:coverage | tee ./coverage.txt
+
+      - name: Jest Coverage Comment
+        id: coverageComment
+        uses: MishaKav/jest-coverage-comment@642ef024cc554a34b7082cea12c7bf63575ae151 # main
+        with:
+          hide-comment: true
+          coverage-path: ./coverage.txt
+          junitxml-path: ./coverage/junit.xml
+
+      - name: Check the output coverage
+        env:
+          COVERAGE: ${{ steps.coverageComment.outputs.coverage }}
+          COLOR: ${{ steps.coverageComment.outputs.color }}
+          SUMMARY_HTML: ${{ steps.coverageComment.outputs.summaryHtml }}
+          TESTS: ${{ steps.coverageComment.outputs.tests }}
+          SKIPPED: ${{ steps.coverageComment.outputs.skipped }}
+          FAILURES: ${{ steps.coverageComment.outputs.failures }}
+          ERRORS: ${{ steps.coverageComment.outputs.errors }}
+          TIME: ${{ steps.coverageComment.outputs.time }}
+          LINES: ${{ steps.coverageComment.outputs.lines }}
+          BRANCHES: ${{ steps.coverageComment.outputs.branches }}
+          FUNCTIONS: ${{ steps.coverageComment.outputs.functions }}
+          STATEMENTS: ${{ steps.coverageComment.outputs.statements }}
+          COVERAGE_HTML: ${{ steps.coverageComment.outputs.coverageHtml }}
+        run: |
+          echo "Summary Report"
+          echo "Coverage Percentage - $COVERAGE"
+          echo "Coverage Color - $COLOR"
+          echo "Summary Html - $SUMMARY_HTML"
+
+          echo "JUnit Report"
+          echo "tests - $TESTS"
+          echo "skipped - $SKIPPED"
+          echo "failures - $FAILURES"
+          echo "errors - $ERRORS"
+          echo "time - $TIME"
+
+          echo "Coverage Report"
+          echo "lines - $LINES"
+          echo "branches - $BRANCHES"
+          echo "functions - $FUNCTIONS"
+          echo "statements - $STATEMENTS"
+          echo "coverage - $COVERAGE"
+          echo "color - $COLOR"
+          echo "Coverage Html - $COVERAGE_HTML"
+
+      - name: Create the badge
+        if: github.ref == 'refs/heads/main'
+        uses: schneegans/dynamic-badges-action@e9a478b16159b4d31420099ba146cdc50f134483 # v1.7.0
+        with:
+          auth: ${{ secrets.JEST_COVERAGE_COMMENT }}
+          gistID: 5e90d640f8c212ab7bbac38f72323f80
+          filename: jest-coverage-comment__main.json
+          label: coverage
+          message: ${{ steps.coverageComment.outputs.coverage }}%
+          color: ${{ steps.coverageComment.outputs.color }}
+          namedLogo: javascript
