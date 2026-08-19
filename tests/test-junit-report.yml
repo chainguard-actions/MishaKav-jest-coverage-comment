@@ -1,0 +1,87 @@
+name: Test JUnit XML report output
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Copy junit fixture into place
+        run: |
+          cp "$GITHUB_WORKSPACE/tests/fixtures/junit.xml" \
+             "$GITHUB_WORKSPACE/junit.xml"
+
+      - id: action
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          junitxml-path: ./junit.xml
+          junitxml-title: 'Test Results'
+          hide-comment: 'true'
+
+      - name: Assert tests output is set
+        env:
+          TESTS: ${{ steps.action.outputs.tests }}
+        run: |
+          echo "tests: $TESTS"
+          if [ -z "$TESTS" ]; then
+            echo "FAIL: expected tests output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: tests=$TESTS"
+
+      - name: Assert tests count is correct
+        env:
+          TESTS: ${{ steps.action.outputs.tests }}
+        run: |
+          echo "tests: $TESTS"
+          if [ "$TESTS" != "6" ]; then
+            echo "FAIL: expected tests=6, got '$TESTS'"
+            exit 1
+          fi
+          echo "PASS: tests=6"
+
+      - name: Assert failures output is set
+        env:
+          FAILURES: ${{ steps.action.outputs.failures }}
+        run: |
+          echo "failures: $FAILURES"
+          if [ -z "$FAILURES" ]; then
+            echo "FAIL: expected failures output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: failures=$FAILURES"
+
+      - name: Assert failures count is zero
+        env:
+          FAILURES: ${{ steps.action.outputs.failures }}
+        run: |
+          echo "failures: $FAILURES"
+          if [ "$FAILURES" != "0" ]; then
+            echo "FAIL: expected failures=0, got '$FAILURES'"
+            exit 1
+          fi
+          echo "PASS: failures=0"
+
+      - name: Assert errors output is set
+        env:
+          ERRORS: ${{ steps.action.outputs.errors }}
+        run: |
+          echo "errors: $ERRORS"
+          if [ -z "$ERRORS" ]; then
+            echo "FAIL: expected errors output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: errors=$ERRORS"
+
+      - name: Assert time output is set
+        env:
+          TIME: ${{ steps.action.outputs.time }}
+        run: |
+          echo "time: $TIME"
+          if [ -z "$TIME" ]; then
+            echo "FAIL: expected time output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: time=$TIME"

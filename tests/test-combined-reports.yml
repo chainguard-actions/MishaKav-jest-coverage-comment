@@ -1,0 +1,73 @@
+name: Test combined coverage summary and junit report
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Copy fixtures into place
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/coverage"
+          cp "$GITHUB_WORKSPACE/tests/fixtures/coverage-summary.json" \
+             "$GITHUB_WORKSPACE/coverage/coverage-summary.json"
+          cp "$GITHUB_WORKSPACE/tests/fixtures/junit.xml" \
+             "$GITHUB_WORKSPACE/junit.xml"
+          cp "$GITHUB_WORKSPACE/tests/fixtures/coverage.txt" \
+             "$GITHUB_WORKSPACE/coverage.txt"
+
+      - id: action
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: ./coverage/coverage-summary.json
+          junitxml-path: ./junit.xml
+          junitxml-title: 'Test Suite Results'
+          coverage-path: ./coverage.txt
+          coverage-title: 'Full Coverage Report'
+          hide-comment: 'true'
+
+      - name: Assert coverage output from summary
+        env:
+          COVERAGE: ${{ steps.action.outputs.coverage }}
+        run: |
+          echo "coverage: $COVERAGE"
+          if [ -z "$COVERAGE" ]; then
+            echo "FAIL: expected coverage output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: coverage=$COVERAGE"
+
+      - name: Assert tests output from junit
+        env:
+          TESTS: ${{ steps.action.outputs.tests }}
+        run: |
+          echo "tests: $TESTS"
+          if [ -z "$TESTS" ]; then
+            echo "FAIL: expected tests output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: tests=$TESTS"
+
+      - name: Assert lines output from coverage text
+        env:
+          LINES: ${{ steps.action.outputs.lines }}
+        run: |
+          echo "lines: $LINES"
+          if [ -z "$LINES" ]; then
+            echo "FAIL: expected lines output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: lines=$LINES"
+
+      - name: Assert skipped output from junit
+        env:
+          SKIPPED: ${{ steps.action.outputs.skipped }}
+        run: |
+          echo "skipped: $SKIPPED"
+          if [ -z "$SKIPPED" ]; then
+            echo "FAIL: expected skipped output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: skipped=$SKIPPED"

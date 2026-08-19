@@ -1,0 +1,50 @@
+name: Test hide-comment option skips comment creation
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Copy coverage summary fixture into place
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/coverage"
+          cp "$GITHUB_WORKSPACE/tests/fixtures/coverage-summary.json" \
+             "$GITHUB_WORKSPACE/coverage/coverage-summary.json"
+
+      - id: action
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: ./coverage/coverage-summary.json
+          title: 'My Test Coverage'
+          badge-title: 'Coverage Badge'
+          hide-comment: 'true'
+
+      - name: Assert action succeeded with hide-comment
+        run: |
+          echo "Action completed successfully with hide-comment=true"
+          echo "PASS"
+
+      - name: Assert coverage output is set even when comment is hidden
+        env:
+          COVERAGE: ${{ steps.action.outputs.coverage }}
+        run: |
+          echo "coverage: $COVERAGE"
+          if [ -z "$COVERAGE" ]; then
+            echo "FAIL: expected coverage output to be set even with hide-comment=true"
+            exit 1
+          fi
+          echo "PASS: coverage=$COVERAGE"
+
+      - name: Assert color output is set even when comment is hidden
+        env:
+          COLOR: ${{ steps.action.outputs.color }}
+        run: |
+          echo "color: $COLOR"
+          if [ -z "$COLOR" ]; then
+            echo "FAIL: expected color output to be set even with hide-comment=true"
+            exit 1
+          fi
+          echo "PASS: color=$COLOR"

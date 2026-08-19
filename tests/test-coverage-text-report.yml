@@ -1,0 +1,76 @@
+name: Test coverage text report output
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Copy coverage text fixture into place
+        run: |
+          cp "$GITHUB_WORKSPACE/tests/fixtures/coverage.txt" \
+             "$GITHUB_WORKSPACE/coverage.txt"
+
+      - id: action
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          coverage-path: ./coverage.txt
+          coverage-title: 'My Coverage Report'
+          hide-comment: 'true'
+
+      - name: Assert lines output is set
+        env:
+          LINES: ${{ steps.action.outputs.lines }}
+        run: |
+          echo "lines: $LINES"
+          if [ -z "$LINES" ]; then
+            echo "FAIL: expected lines output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: lines=$LINES"
+
+      - name: Assert branches output is set
+        env:
+          BRANCHES: ${{ steps.action.outputs.branches }}
+        run: |
+          echo "branches: $BRANCHES"
+          if [ -z "$BRANCHES" ]; then
+            echo "FAIL: expected branches output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: branches=$BRANCHES"
+
+      - name: Assert functions output is set
+        env:
+          FUNCTIONS: ${{ steps.action.outputs.functions }}
+        run: |
+          echo "functions: $FUNCTIONS"
+          if [ -z "$FUNCTIONS" ]; then
+            echo "FAIL: expected functions output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: functions=$FUNCTIONS"
+
+      - name: Assert statements output is set
+        env:
+          STATEMENTS: ${{ steps.action.outputs.statements }}
+        run: |
+          echo "statements: $STATEMENTS"
+          if [ -z "$STATEMENTS" ]; then
+            echo "FAIL: expected statements output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: statements=$STATEMENTS"
+
+      - name: Assert coverage output is set from text report
+        env:
+          COVERAGE: ${{ steps.action.outputs.coverage }}
+        run: |
+          echo "coverage: $COVERAGE"
+          if [ -z "$COVERAGE" ]; then
+            echo "FAIL: expected coverage output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: coverage=$COVERAGE"

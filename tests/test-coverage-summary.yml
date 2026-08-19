@@ -1,0 +1,65 @@
+name: Test coverage summary output
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Copy coverage summary fixture into place
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/coverage"
+          cp "$GITHUB_WORKSPACE/tests/fixtures/coverage-summary.json" \
+             "$GITHUB_WORKSPACE/coverage/coverage-summary.json"
+
+      - id: action
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: ./coverage/coverage-summary.json
+          hide-comment: 'true'
+
+      - name: Assert coverage output is set
+        env:
+          COVERAGE: ${{ steps.action.outputs.coverage }}
+        run: |
+          echo "coverage: $COVERAGE"
+          if [ -z "$COVERAGE" ]; then
+            echo "FAIL: expected coverage output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: coverage=$COVERAGE"
+
+      - name: Assert color output is set
+        env:
+          COLOR: ${{ steps.action.outputs.color }}
+        run: |
+          echo "color: $COLOR"
+          if [ -z "$COLOR" ]; then
+            echo "FAIL: expected color output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: color=$COLOR"
+
+      - name: Assert summaryHtml output is set
+        env:
+          SUMMARY_HTML: ${{ steps.action.outputs.summaryHtml }}
+        run: |
+          echo "summaryHtml length: ${#SUMMARY_HTML}"
+          if [ -z "$SUMMARY_HTML" ]; then
+            echo "FAIL: expected summaryHtml output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: summaryHtml is set"
+
+      - name: Assert coverage value is numeric
+        env:
+          COVERAGE: ${{ steps.action.outputs.coverage }}
+        run: |
+          echo "coverage: $COVERAGE"
+          if ! echo "$COVERAGE" | grep -qE '^[0-9]+(\.[0-9]+)?$'; then
+            echo "FAIL: coverage '$COVERAGE' is not a numeric value"
+            exit 1
+          fi
+          echo "PASS: coverage is numeric"
