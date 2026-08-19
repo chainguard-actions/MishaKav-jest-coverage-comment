@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="42" failures="2" errors="1" time="5.678">
+  <testsuite name="src/utils.test.js" tests="20" failures="1" errors="0" time="2.345" skipped="3">
+    <testcase classname="utils" name="should add numbers" time="0.1"/>
+    <testcase classname="utils" name="should subtract numbers" time="0.1">
+      <failure message="Expected 3 but got 4">AssertionError</failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="src/app.test.js" tests="22" failures="1" errors="1" time="3.333" skipped="1">
+    <testcase classname="app" name="should render" time="0.2"/>
+    <testcase classname="app" name="should handle errors" time="0.1">
+      <failure message="Timeout">TimeoutError</failure>
+    </testcase>
+  </testsuite>
+</testsuites>

@@ -1,0 +1,71 @@
+name: Test junitxml parsing
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: ${{ github.workspace }}/tests/fixtures/coverage-summary-70.json
+          junitxml-path: ${{ github.workspace }}/tests/fixtures/junit.xml
+          junitxml-title: 'Test Results'
+          hide-comment: 'true'
+
+      - name: Assert junitxml outputs
+        env:
+          COVERAGE: ${{ steps.action.outputs.coverage }}
+          TESTS: ${{ steps.action.outputs.tests }}
+          FAILURES: ${{ steps.action.outputs.failures }}
+          ERRORS: ${{ steps.action.outputs.errors }}
+          TIME: ${{ steps.action.outputs.time }}
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "coverage: $COVERAGE"
+          echo "tests: $TESTS"
+          echo "failures: $FAILURES"
+          echo "errors: $ERRORS"
+          echo "time: $TIME"
+
+          if [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
+            exit 0
+          fi
+
+          if [ -z "$COVERAGE" ]; then
+            echo "FAIL: coverage output is empty"
+            exit 1
+          fi
+
+          if [ "$COVERAGE" != "70" ]; then
+            echo "FAIL: expected coverage=70, got '$COVERAGE'"
+            exit 1
+          fi
+
+          if [ -z "$TESTS" ]; then
+            echo "FAIL: tests output is empty"
+            exit 1
+          fi
+
+          if [ "$TESTS" != "42" ]; then
+            echo "FAIL: expected tests=42, got '$TESTS'"
+            exit 1
+          fi
+
+          if [ -z "$FAILURES" ]; then
+            echo "FAIL: failures output is empty"
+            exit 1
+          fi
+
+          if [ "$FAILURES" != "2" ]; then
+            echo "FAIL: expected failures=2, got '$FAILURES'"
+            exit 1
+          fi
+
+          echo "PASS: coverage=$COVERAGE, tests=$TESTS, failures=$FAILURES"

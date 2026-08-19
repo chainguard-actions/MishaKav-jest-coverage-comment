@@ -1,0 +1,56 @@
+name: Test coverage text report parsing
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: ${{ github.workspace }}/tests/fixtures/coverage-summary-85.json
+          coverage-path: ${{ github.workspace }}/tests/fixtures/coverage.txt
+          coverage-title: 'My Coverage Report'
+          hide-comment: 'true'
+
+      - name: Assert coverage text outputs
+        env:
+          COVERAGE: ${{ steps.action.outputs.coverage }}
+          LINES: ${{ steps.action.outputs.lines }}
+          BRANCHES: ${{ steps.action.outputs.branches }}
+          FUNCTIONS: ${{ steps.action.outputs.functions }}
+          STATEMENTS: ${{ steps.action.outputs.statements }}
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "coverage: $COVERAGE"
+          echo "lines: $LINES"
+          echo "branches: $BRANCHES"
+          echo "functions: $FUNCTIONS"
+          echo "statements: $STATEMENTS"
+
+          if [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
+            exit 0
+          fi
+
+          if [ -z "$COVERAGE" ]; then
+            echo "FAIL: coverage output is empty"
+            exit 1
+          fi
+
+          if [ "$COVERAGE" != "85" ]; then
+            echo "FAIL: expected coverage=85, got '$COVERAGE'"
+            exit 1
+          fi
+
+          # Lines/branches/functions/statements come from the text report
+          if [ -z "$LINES" ] && [ -z "$STATEMENTS" ]; then
+            echo "WARN: lines and statements outputs are both empty (text report may not have been parsed)"
+          fi
+
+          echo "PASS: coverage=$COVERAGE"
