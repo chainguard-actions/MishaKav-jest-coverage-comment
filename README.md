@@ -9,7 +9,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
 | v1.0.28 | [`v1.0.28`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.28) | — |
-| v1.0.29 | [`v1.0.29`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.29) | — |
+| v1.0.29 | [`v1.0.29`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.29) | [`174f9cb`](https://github.com/MishaKav/jest-coverage-comment/commit/174f9cbf582b7cc2a7a3acce14dcfc8362e9d37f) |
 | v1.0.30 | [`v1.0.30`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.30) | — |
 | v1.0.32 | [`v1.0.32`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.32) | — |
 | v1.0.33 | [`v1.0.33`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.33) | — |
