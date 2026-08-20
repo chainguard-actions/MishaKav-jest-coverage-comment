@@ -1,4 +1,4 @@
-name: Test basic coverage summary
+name: Test coverage with title input
 on:
   workflow_dispatch:
 jobs:
@@ -11,11 +11,12 @@ jobs:
         uses: .
         with:
           github-token: ${{ github.token }}
-          coverage-summary-path: ${{ github.workspace }}/tests/fixtures/coverage-80/coverage-summary.json
+          title: 'My Custom Coverage Report Title'
+          coverage-summary-path: ${{ github.workspace }}/hardened/tests/fixtures/coverage-80/coverage-summary.json
           hide-comment: 'true'
         continue-on-error: true
 
-      - name: Assert coverage output
+      - name: Assert coverage output with title
         env:
           COVERAGE: ${{ steps.action.outputs.coverage }}
           COLOR: ${{ steps.action.outputs.color }}
@@ -52,4 +53,4 @@ jobs:
             exit 1
           fi
 
-          echo "PASS: coverage=$COVERAGE color=$COLOR"
+          echo "PASS: coverage=$COVERAGE color=$COLOR (title input accepted)"

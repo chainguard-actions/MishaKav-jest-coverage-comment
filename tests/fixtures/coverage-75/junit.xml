@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="42" failures="2" errors="1" time="5.678" skipped="3">
+  <testsuite name="Suite 1" tests="20" failures="1" errors="0" time="2.5" skipped="1">
+    <testcase classname="Suite 1" name="test 1" time="0.5" />
+    <testcase classname="Suite 1" name="test 2" time="0.3">
+      <failure>Expected true to be false</failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="Suite 2" tests="22" failures="1" errors="1" time="3.178" skipped="2">
+    <testcase classname="Suite 2" name="test 3" time="0.4" />
+    <testcase classname="Suite 2" name="test 4" time="0.2">
+      <failure>Expected 1 to equal 2</failure>
+    </testcase>
+  </testsuite>
+</testsuites>

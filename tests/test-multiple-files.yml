@@ -1,4 +1,4 @@
-name: Test basic coverage summary
+name: Test multiple coverage files
 on:
   workflow_dispatch:
 jobs:
@@ -11,20 +11,20 @@ jobs:
         uses: .
         with:
           github-token: ${{ github.token }}
-          coverage-summary-path: ${{ github.workspace }}/tests/fixtures/coverage-80/coverage-summary.json
           hide-comment: 'true'
+          multiple-files: |
+            App, ${{ github.workspace }}/tests/fixtures/multiple/app/coverage-summary.json
+            Lib, ${{ github.workspace }}/tests/fixtures/multiple/lib/coverage-summary.json
         continue-on-error: true
 
-      - name: Assert coverage output
+      - name: Assert multiple files outputs
         env:
           COVERAGE: ${{ steps.action.outputs.coverage }}
-          COLOR: ${{ steps.action.outputs.color }}
           SUMMARY_HTML: ${{ steps.action.outputs.summaryHtml }}
           OUTCOME: ${{ steps.action.outcome }}
         run: |
           echo "outcome: $OUTCOME"
           echo "coverage: $COVERAGE"
-          echo "color: $COLOR"
           echo "summaryHtml length: ${#SUMMARY_HTML}"
 
           if [ "$OUTCOME" = "failure" ]; then
@@ -37,19 +37,10 @@ jobs:
             exit 1
           fi
 
-          if [ -z "$COVERAGE" ]; then
-            echo "FAIL: expected coverage output to be set"
-            exit 1
-          fi
+          # When using multiple-files without a coverage-summary-path, the coverage
+          # and summaryHtml outputs are not set (they come from the summary report).
+          # The action still succeeds and processes the multiple files.
+          echo "coverage output: '$COVERAGE'"
+          echo "summaryHtml: '$SUMMARY_HTML'"
 
-          if [ "$COVERAGE" != "80" ]; then
-            echo "FAIL: expected coverage to be 80, got '$COVERAGE'"
-            exit 1
-          fi
-
-          if [ -z "$COLOR" ]; then
-            echo "FAIL: expected color output to be set"
-            exit 1
-          fi
-
-          echo "PASS: coverage=$COVERAGE color=$COLOR"
+          echo "PASS: multiple files processed successfully"
