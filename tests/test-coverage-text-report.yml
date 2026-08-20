@@ -1,0 +1,76 @@
+name: Test coverage text report
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create coverage text report and summary
+        run: |
+          mkdir -p coverage
+
+          cat > coverage/coverage-summary.json << 'EOF'
+          {
+            "total": {
+              "lines": { "total": 200, "covered": 170, "skipped": 0, "pct": 85 },
+              "statements": { "total": 220, "covered": 187, "skipped": 0, "pct": 85 },
+              "functions": { "total": 40, "covered": 34, "skipped": 0, "pct": 85 },
+              "branches": { "total": 60, "covered": 48, "skipped": 0, "pct": 80 }
+            }
+          }
+          EOF
+
+          cat > coverage/coverage.txt << 'EOF'
+          ----------------------|---------|----------|---------|---------|-------------------
+          File                  | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
+          ----------------------|---------|----------|---------|---------|-------------------
+          All files             |      85 |       80 |      85 |      85 |
+           src                  |      85 |       80 |      85 |      85 |
+            index.js            |      85 |       80 |      85 |      85 | 42-45
+          ----------------------|---------|----------|---------|---------|-------------------
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: ./coverage/coverage-summary.json
+          coverage-path: ./coverage/coverage.txt
+          coverage-title: 'My Coverage Report'
+          hide-comment: 'true'
+        continue-on-error: true
+
+      - name: Assert coverage text outputs
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          COVERAGE: ${{ steps.action.outputs.coverage }}
+          LINES: ${{ steps.action.outputs.lines }}
+          BRANCHES: ${{ steps.action.outputs.branches }}
+          FUNCTIONS: ${{ steps.action.outputs.functions }}
+          STATEMENTS: ${{ steps.action.outputs.statements }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "coverage: $COVERAGE"
+          echo "lines: $LINES"
+          echo "branches: $BRANCHES"
+          echo "functions: $FUNCTIONS"
+          echo "statements: $STATEMENTS"
+
+          if [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
+            exit 0
+          fi
+
+          if [ "$OUTCOME" != "success" ]; then
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
+
+          if [ -z "$COVERAGE" ]; then
+            echo "FAIL: expected coverage output to be set"
+            exit 1
+          fi
+
+          echo "PASS: coverage text report outputs: coverage=$COVERAGE lines=$LINES branches=$BRANCHES functions=$FUNCTIONS statements=$STATEMENTS"

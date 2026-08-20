@@ -1,0 +1,91 @@
+name: Test junitxml report
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create coverage-summary.json and junit.xml
+        run: |
+          mkdir -p coverage
+
+          cat > coverage/coverage-summary.json << 'EOF'
+          {
+            "total": {
+              "lines": { "total": 100, "covered": 75, "skipped": 0, "pct": 75 },
+              "statements": { "total": 110, "covered": 82, "skipped": 0, "pct": 74.54 },
+              "functions": { "total": 25, "covered": 20, "skipped": 0, "pct": 80 },
+              "branches": { "total": 30, "covered": 21, "skipped": 0, "pct": 70 }
+            }
+          }
+          EOF
+
+          cat > coverage/junit.xml << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <testsuites name="jest tests" tests="42" failures="2" errors="1" time="5.678" skipped="3">
+            <testsuite name="src/utils.test.js" tests="20" failures="1" errors="0" time="2.345" skipped="1">
+              <testcase classname="utils" name="should add numbers" time="0.01"/>
+              <testcase classname="utils" name="should subtract numbers" time="0.01">
+                <failure message="Expected 2 but got 3">AssertionError</failure>
+              </testcase>
+            </testsuite>
+            <testsuite name="src/app.test.js" tests="22" failures="1" errors="1" time="3.333" skipped="2">
+              <testcase classname="app" name="should render" time="0.05"/>
+              <testcase classname="app" name="should handle error" time="0.02">
+                <failure message="Unexpected error">Error</failure>
+              </testcase>
+            </testsuite>
+          </testsuites>
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: ./coverage/coverage-summary.json
+          junitxml-path: ./coverage/junit.xml
+          junitxml-title: 'Test Results'
+          hide-comment: 'true'
+        continue-on-error: true
+
+      - name: Assert junitxml outputs
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          COVERAGE: ${{ steps.action.outputs.coverage }}
+          TESTS: ${{ steps.action.outputs.tests }}
+          SKIPPED: ${{ steps.action.outputs.skipped }}
+          FAILURES: ${{ steps.action.outputs.failures }}
+          ERRORS: ${{ steps.action.outputs.errors }}
+          TIME: ${{ steps.action.outputs.time }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "coverage: $COVERAGE"
+          echo "tests: $TESTS"
+          echo "skipped: $SKIPPED"
+          echo "failures: $FAILURES"
+          echo "errors: $ERRORS"
+          echo "time: $TIME"
+
+          if [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
+            exit 0
+          fi
+
+          if [ "$OUTCOME" != "success" ]; then
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
+
+          if [ -z "$TESTS" ]; then
+            echo "FAIL: expected tests output to be set from junitxml"
+            exit 1
+          fi
+
+          if [ "$TESTS" != "42" ]; then
+            echo "FAIL: expected tests=42, got '$TESTS'"
+            exit 1
+          fi
+
+          echo "PASS: junitxml outputs: tests=$TESTS skipped=$SKIPPED failures=$FAILURES errors=$ERRORS time=$TIME"

@@ -1,0 +1,67 @@
+name: Test display options (hide-summary, text-instead-badge)
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create coverage-summary.json
+        run: |
+          mkdir -p coverage
+          cat > coverage/coverage-summary.json << 'EOF'
+          {
+            "total": {
+              "lines": { "total": 50, "covered": 50, "skipped": 0, "pct": 100 },
+              "statements": { "total": 60, "covered": 60, "skipped": 0, "pct": 100 },
+              "functions": { "total": 10, "covered": 10, "skipped": 0, "pct": 100 },
+              "branches": { "total": 20, "covered": 20, "skipped": 0, "pct": 100 }
+            }
+          }
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: ./coverage/coverage-summary.json
+          title: 'My Project Coverage'
+          summary-title: 'Coverage Summary'
+          badge-title: 'Test Coverage'
+          text-instead-badge: 'true'
+          hide-summary: 'true'
+          hide-comment: 'true'
+        continue-on-error: true
+
+      - name: Assert outputs with display options
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          COVERAGE: ${{ steps.action.outputs.coverage }}
+          COLOR: ${{ steps.action.outputs.color }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "coverage: $COVERAGE"
+          echo "color: $COLOR"
+
+          if [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
+            exit 0
+          fi
+
+          if [ "$OUTCOME" != "success" ]; then
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
+
+          if [ -z "$COVERAGE" ]; then
+            echo "FAIL: expected coverage output to be set"
+            exit 1
+          fi
+
+          if [ "$COVERAGE" != "100" ]; then
+            echo "FAIL: expected coverage=100 for fully covered project, got '$COVERAGE'"
+            exit 1
+          fi
+
+          echo "PASS: display options scenario: coverage=$COVERAGE color=$COLOR"

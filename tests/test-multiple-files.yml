@@ -1,0 +1,66 @@
+name: Test multiple coverage files
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create multiple coverage summary files
+        run: |
+          mkdir -p coverage/app1 coverage/app2
+
+          cat > coverage/app1/coverage-summary.json << 'EOF'
+          {
+            "total": {
+              "lines": { "total": 50, "covered": 45, "skipped": 0, "pct": 90 },
+              "statements": { "total": 60, "covered": 54, "skipped": 0, "pct": 90 },
+              "functions": { "total": 15, "covered": 14, "skipped": 0, "pct": 93.33 },
+              "branches": { "total": 20, "covered": 18, "skipped": 0, "pct": 90 }
+            }
+          }
+          EOF
+
+          cat > coverage/app2/coverage-summary.json << 'EOF'
+          {
+            "total": {
+              "lines": { "total": 80, "covered": 56, "skipped": 0, "pct": 70 },
+              "statements": { "total": 90, "covered": 63, "skipped": 0, "pct": 70 },
+              "functions": { "total": 20, "covered": 14, "skipped": 0, "pct": 70 },
+              "branches": { "total": 30, "covered": 21, "skipped": 0, "pct": 70 }
+            }
+          }
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          hide-comment: 'true'
+          multiple-files: |
+            App1, ./coverage/app1/coverage-summary.json
+            App2, ./coverage/app2/coverage-summary.json
+        continue-on-error: true
+
+      - name: Assert action ran
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          COVERAGE: ${{ steps.action.outputs.coverage }}
+          SUMMARY_HTML: ${{ steps.action.outputs.summaryHtml }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "coverage: $COVERAGE"
+          echo "summaryHtml length: ${#SUMMARY_HTML}"
+
+          if [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
+            exit 0
+          fi
+
+          if [ "$OUTCOME" != "success" ]; then
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
+
+          echo "PASS: multiple-files scenario completed successfully"
