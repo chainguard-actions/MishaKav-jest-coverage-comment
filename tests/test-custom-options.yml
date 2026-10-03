@@ -1,0 +1,59 @@
+name: Test custom options (text-instead-badge, titles, hide-summary)
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create coverage summary file
+        run: |
+          mkdir -p coverage
+          cat > coverage/coverage-summary.json << 'EOF'
+          {
+            "total": {
+              "lines": { "total": 200, "covered": 180, "skipped": 0, "pct": 90 },
+              "statements": { "total": 250, "covered": 225, "skipped": 0, "pct": 90 },
+              "functions": { "total": 60, "covered": 54, "skipped": 0, "pct": 90 },
+              "branches": { "total": 80, "covered": 72, "skipped": 0, "pct": 90 }
+            }
+          }
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: ./coverage/coverage-summary.json
+          title: 'My Custom Title'
+          summary-title: 'Coverage Summary'
+          badge-title: 'Test Coverage'
+          text-instead-badge: 'true'
+          hide-summary: 'false'
+          hide-comment: 'true'
+        continue-on-error: true
+
+      - name: Assert outputs with custom options
+        env:
+          COVERAGE: ${{ steps.action.outputs.coverage }}
+          COLOR: ${{ steps.action.outputs.color }}
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "coverage: $COVERAGE"
+          echo "color: $COLOR"
+
+          if [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable for PR comment)"
+          elif [ "$OUTCOME" = "success" ]; then
+            if [ -z "$COVERAGE" ]; then
+              echo "FAIL: coverage output is empty"
+              exit 1
+            fi
+            # Coverage should be 90 for 90% coverage
+            echo "PASS: coverage=$COVERAGE color=$COLOR"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

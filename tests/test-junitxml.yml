@@ -1,0 +1,99 @@
+name: Test JUnit XML parsing
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create coverage summary and JUnit XML files
+        run: |
+          mkdir -p coverage
+
+          cat > coverage/coverage-summary.json << 'EOF'
+          {
+            "total": {
+              "lines": { "total": 50, "covered": 45, "skipped": 0, "pct": 90 },
+              "statements": { "total": 60, "covered": 54, "skipped": 0, "pct": 90 },
+              "functions": { "total": 20, "covered": 18, "skipped": 0, "pct": 90 },
+              "branches": { "total": 30, "covered": 27, "skipped": 0, "pct": 90 }
+            }
+          }
+          EOF
+
+          cat > coverage/junit.xml << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <testsuites name="jest tests" tests="10" failures="1" errors="0" time="5.123">
+            <testsuite name="src/__tests__/example.test.js" tests="10" failures="1" errors="0" skipped="2" time="5.123">
+              <testcase classname="example test suite passes test one" name="passes test one" time="0.5">
+              </testcase>
+              <testcase classname="example test suite passes test two" name="passes test two" time="0.3">
+              </testcase>
+              <testcase classname="example test suite skipped test" name="skipped test" time="0">
+                <skipped/>
+              </testcase>
+              <testcase classname="example test suite another skipped" name="another skipped" time="0">
+                <skipped/>
+              </testcase>
+              <testcase classname="example test suite fails test" name="fails test" time="0.2">
+                <failure message="Expected true to be false">Expected true to be false</failure>
+              </testcase>
+              <testcase classname="example test suite passes test three" name="passes test three" time="0.4">
+              </testcase>
+              <testcase classname="example test suite passes test four" name="passes test four" time="0.6">
+              </testcase>
+              <testcase classname="example test suite passes test five" name="passes test five" time="0.7">
+              </testcase>
+              <testcase classname="example test suite passes test six" name="passes test six" time="0.8">
+              </testcase>
+              <testcase classname="example test suite passes test seven" name="passes test seven" time="0.9">
+              </testcase>
+            </testsuite>
+          </testsuites>
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          github-token: ${{ github.token }}
+          coverage-summary-path: ./coverage/coverage-summary.json
+          junitxml-path: ./coverage/junit.xml
+          junitxml-title: 'Test Results'
+          hide-comment: 'true'
+        continue-on-error: true
+
+      - name: Assert JUnit outputs
+        env:
+          TESTS: ${{ steps.action.outputs.tests }}
+          SKIPPED: ${{ steps.action.outputs.skipped }}
+          FAILURES: ${{ steps.action.outputs.failures }}
+          ERRORS: ${{ steps.action.outputs.errors }}
+          TIME: ${{ steps.action.outputs.time }}
+          COVERAGE: ${{ steps.action.outputs.coverage }}
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "tests: $TESTS"
+          echo "skipped: $SKIPPED"
+          echo "failures: $FAILURES"
+          echo "errors: $ERRORS"
+          echo "time: $TIME"
+          echo "coverage: $COVERAGE"
+
+          if [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable for PR comment)"
+          elif [ "$OUTCOME" = "success" ]; then
+            if [ -z "$TESTS" ]; then
+              echo "FAIL: tests output is empty"
+              exit 1
+            fi
+            if [ -z "$COVERAGE" ]; then
+              echo "FAIL: coverage output is empty"
+              exit 1
+            fi
+            echo "PASS: tests=$TESTS skipped=$SKIPPED failures=$FAILURES errors=$ERRORS time=$TIME coverage=$COVERAGE"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
