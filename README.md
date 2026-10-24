@@ -17,6 +17,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | v1.0.35 | [`v1.0.35`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.35) | [`30a48d7`](https://github.com/MishaKav/jest-coverage-comment/commit/30a48d70e2a76ff9cf0e0b348e487c865bfea4dc) |
 | v1.0.36 | [`v1.0.36`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.36) | [`642ef02`](https://github.com/MishaKav/jest-coverage-comment/commit/642ef024cc554a34b7082cea12c7bf63575ae151) |
 | v1.0.37 | [`v1.0.37`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.37) | [`1b5d154`](https://github.com/MishaKav/jest-coverage-comment/commit/1b5d15445c8afba0c13bd00167bd31130b812d0a) |
+| v1.0.38 | [`v1.0.38`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.38) | [`7032bf8`](https://github.com/MishaKav/jest-coverage-comment/commit/7032bf8e71aa2b267b6b143be3c4480b625c2b12) |
 
 ## Privacy
 
