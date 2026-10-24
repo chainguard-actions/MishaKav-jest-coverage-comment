@@ -1,0 +1,33 @@
+name: Test custom title
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          title: My Custom Coverage Title
+          coverage-summary-path: ./tests/fixtures/coverage-summary.json
+      - name: Assert coverage output
+        env:
+          ACTUAL: ${{ steps.action.outputs.coverage }}
+        run: |
+          echo "actual: $ACTUAL"
+          if [ "$ACTUAL" != "85" ]; then
+            echo "FAIL: expected '85'"
+            exit 1
+          fi
+          echo "PASS"
+      - name: Assert summaryHtml output
+        env:
+          ACTUAL: ${{ steps.action.outputs.summaryHtml }}
+        run: |
+          echo "actual: $ACTUAL"
+          if ! printf '%s' "$ACTUAL" | grep -qF -- "| Lines | Statements | Branches | Functions |"; then
+            echo "FAIL: summaryHtml missing table header"
+            exit 1
+          fi
+          echo "PASS"

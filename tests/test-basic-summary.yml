@@ -1,0 +1,48 @@
+name: Test basic coverage summary
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          coverage-summary-path: ./tests/fixtures/coverage-summary.json
+      - name: Assert coverage output
+        env:
+          ACTUAL: ${{ steps.action.outputs.coverage }}
+        run: |
+          echo "actual: $ACTUAL"
+          if [ "$ACTUAL" != "85" ]; then
+            echo "FAIL: expected '85'"
+            exit 1
+          fi
+          echo "PASS"
+      - name: Assert color output
+        env:
+          ACTUAL: ${{ steps.action.outputs.color }}
+        run: |
+          echo "actual: $ACTUAL"
+          if [ "$ACTUAL" != "green" ]; then
+            echo "FAIL: expected 'green'"
+            exit 1
+          fi
+          echo "PASS"
+      - name: Assert summaryHtml output
+        env:
+          ACTUAL: ${{ steps.action.outputs.summaryHtml }}
+        run: |
+          echo "actual: $ACTUAL"
+          for needle in "| Lines | Statements | Branches | Functions |" \
+                        "img.shields.io/badge/Coverage-85%25-green.svg" \
+                        "81.81% (180/220)" \
+                        "50% (25/50)" \
+                        "75% (30/40)"; do
+            if ! printf '%s' "$ACTUAL" | grep -qF -- "$needle"; then
+              echo "FAIL: summaryHtml missing '$needle'"
+              exit 1
+            fi
+          done
+          echo "PASS"

@@ -1,0 +1,44 @@
+name: Test junitxml report
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          junitxml-path: ./tests/fixtures/junit.xml
+          junitxml-title: My Tests
+          hide-comment: 'true'
+      - name: Assert junit outputs
+        env:
+          TESTS: ${{ steps.action.outputs.tests }}
+          SKIPPED: ${{ steps.action.outputs.skipped }}
+          FAILURES: ${{ steps.action.outputs.failures }}
+          ERRORS: ${{ steps.action.outputs.errors }}
+          TIME: ${{ steps.action.outputs.time }}
+          FAILED_HTML: ${{ steps.action.outputs.failedTestsHtml }}
+        run: |
+          echo "tests=$TESTS skipped=$SKIPPED failures=$FAILURES errors=$ERRORS time=$TIME"
+          [ "$TESTS" = "6" ] || { echo "FAIL: tests expected 6"; exit 1; }
+          [ "$SKIPPED" = "2" ] || { echo "FAIL: skipped expected 2"; exit 1; }
+          [ "$FAILURES" = "0" ] || { echo "FAIL: failures expected 0"; exit 1; }
+          [ "$ERRORS" = "0" ] || { echo "FAIL: errors expected 0"; exit 1; }
+          [ "$TIME" = "2.5" ] || { echo "FAIL: time expected 2.5"; exit 1; }
+          if [ -n "$FAILED_HTML" ]; then
+            echo "FAIL: failedTestsHtml should be empty, got: $FAILED_HTML"
+            exit 1
+          fi
+          echo "PASS"
+      - name: Assert no summary outputs (default summary path missing)
+        env:
+          COVERAGE: ${{ steps.action.outputs.coverage }}
+        run: |
+          echo "coverage: '$COVERAGE'"
+          if [ -n "$COVERAGE" ]; then
+            echo "FAIL: coverage should not be set"
+            exit 1
+          fi
+          echo "PASS"

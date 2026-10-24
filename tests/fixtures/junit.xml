@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="6" failures="0" errors="0" time="2.5">
+  <testsuite name="math" errors="0" failures="0" skipped="1" timestamp="2024-01-01T00:00:00" time="1.2" tests="3">
+    <testcase classname="math adds" name="math adds" time="0.01"></testcase>
+    <testcase classname="math subtracts" name="math subtracts" time="0.01"></testcase>
+    <testcase classname="math divides" name="math divides" time="0.0"><skipped/></testcase>
+  </testsuite>
+  <testsuite name="strings" errors="0" failures="0" skipped="1" timestamp="2024-01-01T00:00:00" time="1.3" tests="3">
+    <testcase classname="strings concat" name="strings concat" time="0.01"></testcase>
+    <testcase classname="strings upper" name="strings upper" time="0.01"></testcase>
+    <testcase classname="strings lower" name="strings lower" time="0.0"><skipped/></testcase>
+  </testsuite>
+</testsuites>

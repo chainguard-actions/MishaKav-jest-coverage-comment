@@ -1,0 +1,39 @@
+name: Test low coverage red badge with custom badge title
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          coverage-summary-path: ./tests/fixtures/coverage-summary-low.json
+          badge-title: MyCov
+          hide-comment: 'true'
+      - name: Assert coverage and color
+        env:
+          COVERAGE: ${{ steps.action.outputs.coverage }}
+          COLOR: ${{ steps.action.outputs.color }}
+        run: |
+          echo "coverage: $COVERAGE color: $COLOR"
+          if [ "$COVERAGE" != "25" ]; then
+            echo "FAIL: expected coverage '25'"
+            exit 1
+          fi
+          if [ "$COLOR" != "red" ]; then
+            echo "FAIL: expected color 'red'"
+            exit 1
+          fi
+          echo "PASS"
+      - name: Assert badge uses custom title
+        env:
+          ACTUAL: ${{ steps.action.outputs.summaryHtml }}
+        run: |
+          echo "actual: $ACTUAL"
+          if ! printf '%s' "$ACTUAL" | grep -qF "img.shields.io/badge/MyCov-25%25-red.svg"; then
+            echo "FAIL: expected custom badge"
+            exit 1
+          fi
+          echo "PASS"

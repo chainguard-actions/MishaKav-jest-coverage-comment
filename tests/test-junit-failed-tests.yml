@@ -1,0 +1,40 @@
+name: Test show failed tests from junitxml
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          junitxml-path: ./tests/fixtures/junit-failures.xml
+          show-failed-tests: 'true'
+          max-failed-tests: '1'
+          hide-comment: 'true'
+      - name: Assert counts
+        env:
+          TESTS: ${{ steps.action.outputs.tests }}
+          FAILURES: ${{ steps.action.outputs.failures }}
+        run: |
+          echo "tests=$TESTS failures=$FAILURES"
+          [ "$TESTS" = "4" ] || { echo "FAIL: tests expected 4"; exit 1; }
+          [ "$FAILURES" = "2" ] || { echo "FAIL: failures expected 2"; exit 1; }
+          echo "PASS"
+      - name: Assert failedTestsHtml
+        env:
+          ACTUAL: ${{ steps.action.outputs.failedTestsHtml }}
+        run: |
+          echo "actual: $ACTUAL"
+          for needle in ":x: Failed Tests" "<b>2</b>" "calculator" "Expected: 3" "and 1 more failed tests"; do
+            if ! printf '%s' "$ACTUAL" | grep -qF -- "$needle"; then
+              echo "FAIL: failedTestsHtml missing '$needle'"
+              exit 1
+            fi
+          done
+          if printf '%s' "$ACTUAL" | grep -qF "Expected: 12"; then
+            echo "FAIL: second failure should be truncated by max-failed-tests"
+            exit 1
+          fi
+          echo "PASS"

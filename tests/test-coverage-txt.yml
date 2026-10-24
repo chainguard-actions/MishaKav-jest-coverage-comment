@@ -1,0 +1,30 @@
+name: Test coverage.txt report
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          coverage-path: ./tests/fixtures/coverage.txt
+          hide-comment: 'true'
+      - name: Assert coverage.txt outputs
+        env:
+          COVERAGE: ${{ steps.action.outputs.coverage }}
+          COLOR: ${{ steps.action.outputs.color }}
+          LINES: ${{ steps.action.outputs.lines }}
+          BRANCHES: ${{ steps.action.outputs.branches }}
+          FUNCTIONS: ${{ steps.action.outputs.functions }}
+          STATEMENTS: ${{ steps.action.outputs.statements }}
+        run: |
+          echo "coverage=$COVERAGE color=$COLOR lines=$LINES branches=$BRANCHES functions=$FUNCTIONS statements=$STATEMENTS"
+          [ "$COVERAGE" = "71" ] || { echo "FAIL: coverage expected 71"; exit 1; }
+          [ "$COLOR" = "yellow" ] || { echo "FAIL: color expected yellow"; exit 1; }
+          [ "$LINES" = "71" ] || { echo "FAIL: lines expected 71"; exit 1; }
+          [ "$BRANCHES" = "100" ] || { echo "FAIL: branches expected 100"; exit 1; }
+          [ "$FUNCTIONS" = "28" ] || { echo "FAIL: functions expected 28"; exit 1; }
+          [ "$STATEMENTS" = "70" ] || { echo "FAIL: statements expected 70"; exit 1; }
+          echo "PASS"

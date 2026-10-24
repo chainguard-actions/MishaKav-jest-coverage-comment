@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="4" failures="2" errors="0" time="3.1">
+  <testsuite name="calculator" errors="0" failures="2" skipped="0" timestamp="2024-01-01T00:00:00" time="3.1" tests="4">
+    <testcase classname="calculator adds numbers" name="calculator adds numbers" time="0.01">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 3
+Received: 4
+    at Object.&lt;anonymous&gt; (/home/runner/work/repo/repo/src/calculator.test.js:5:20)</failure>
+    </testcase>
+    <testcase classname="calculator multiplies numbers" name="calculator multiplies numbers" time="0.01">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 12
+Received: 7
+    at Object.&lt;anonymous&gt; (/home/runner/work/repo/repo/src/calculator.test.js:9:20)</failure>
+    </testcase>
+    <testcase classname="calculator subtracts" name="calculator subtracts" time="0.01"></testcase>
+    <testcase classname="calculator divides" name="calculator divides" time="0.01"></testcase>
+  </testsuite>
+</testsuites>

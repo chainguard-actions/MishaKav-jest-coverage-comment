@@ -1,0 +1,44 @@
+name: Test text instead of badge with summary title
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          coverage-summary-path: ./tests/fixtures/coverage-summary.json
+          summary-title: My Summary
+          text-instead-badge: 'true'
+          hide-comment: 'true'
+      - name: Assert summaryHtml uses text and title
+        env:
+          ACTUAL: ${{ steps.action.outputs.summaryHtml }}
+        run: |
+          echo "actual: $ACTUAL"
+          if ! printf '%s' "$ACTUAL" | grep -qF "## My Summary"; then
+            echo "FAIL: missing summary title"
+            exit 1
+          fi
+          if ! printf '%s' "$ACTUAL" | grep -qF "85.5% (171/200)"; then
+            echo "FAIL: missing text lines coverage"
+            exit 1
+          fi
+          if printf '%s' "$ACTUAL" | grep -qF "img.shields.io"; then
+            echo "FAIL: badge image should not be present"
+            exit 1
+          fi
+          echo "PASS"
+      - name: Assert coverage still reported
+        env:
+          COVERAGE: ${{ steps.action.outputs.coverage }}
+          COLOR: ${{ steps.action.outputs.color }}
+        run: |
+          echo "coverage: $COVERAGE color: $COLOR"
+          if [ "$COVERAGE" != "85" ] || [ "$COLOR" != "green" ]; then
+            echo "FAIL: expected 85/green"
+            exit 1
+          fi
+          echo "PASS"
