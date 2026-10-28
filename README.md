@@ -6,18 +6,18 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 
 ## Versions
 
-| Version | Tag | Upstream commit |
-|---------|-----|-----------------|
-| v1.0.28 | [`v1.0.28`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.28) | [`aa3935c`](https://github.com/MishaKav/jest-coverage-comment/commit/aa3935cf9ee61efc40d9e47dcc8a523a49a70b96) |
-| v1.0.29 | [`v1.0.29`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.29) | [`174f9cb`](https://github.com/MishaKav/jest-coverage-comment/commit/174f9cbf582b7cc2a7a3acce14dcfc8362e9d37f) |
-| v1.0.30 | [`v1.0.30`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.30) | [`2a8fe30`](https://github.com/MishaKav/jest-coverage-comment/commit/2a8fe3083255756f3692599238ca251e858e15b2) |
-| v1.0.32 | [`v1.0.32`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.32) | [`c480abe`](https://github.com/MishaKav/jest-coverage-comment/commit/c480abe47ef4f7bcd87bd8b5e6043fdfb1c4d270) |
-| v1.0.33 | [`v1.0.33`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.33) | [`40d7aed`](https://github.com/MishaKav/jest-coverage-comment/commit/40d7aed38d0fbaea266c34c12ab06356eec894eb) |
-| v1.0.34 | [`v1.0.34`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.34) | [`25f2818`](https://github.com/MishaKav/jest-coverage-comment/commit/25f2818fee93043532f640ad32a7565b4bd4ea9a) |
-| v1.0.35 | [`v1.0.35`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.35) | [`30a48d7`](https://github.com/MishaKav/jest-coverage-comment/commit/30a48d70e2a76ff9cf0e0b348e487c865bfea4dc) |
-| v1.0.36 | [`v1.0.36`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.36) | [`642ef02`](https://github.com/MishaKav/jest-coverage-comment/commit/642ef024cc554a34b7082cea12c7bf63575ae151) |
-| v1.0.37 | [`v1.0.37`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.37) | [`1b5d154`](https://github.com/MishaKav/jest-coverage-comment/commit/1b5d15445c8afba0c13bd00167bd31130b812d0a) |
-| v1.0.38 | [`v1.0.38`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.38) | [`7032bf8`](https://github.com/MishaKav/jest-coverage-comment/commit/7032bf8e71aa2b267b6b143be3c4480b625c2b12) |
+| Version | Tag | Upstream commit | Hardening report |
+|---------|-----|-----------------|------------------|
+| v1.0.28 | [`v1.0.28`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.28) | [`aa3935c`](https://github.com/MishaKav/jest-coverage-comment/commit/aa3935cf9ee61efc40d9e47dcc8a523a49a70b96) | [`HARDENING.md`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/blob/v1.0.28/HARDENING.md) |
+| v1.0.29 | [`v1.0.29`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.29) | [`174f9cb`](https://github.com/MishaKav/jest-coverage-comment/commit/174f9cbf582b7cc2a7a3acce14dcfc8362e9d37f) | [`HARDENING.md`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/blob/v1.0.29/HARDENING.md) |
+| v1.0.30 | [`v1.0.30`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.30) | [`2a8fe30`](https://github.com/MishaKav/jest-coverage-comment/commit/2a8fe3083255756f3692599238ca251e858e15b2) | [`HARDENING.md`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/blob/v1.0.30/HARDENING.md) |
+| v1.0.32 | [`v1.0.32`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.32) | [`c480abe`](https://github.com/MishaKav/jest-coverage-comment/commit/c480abe47ef4f7bcd87bd8b5e6043fdfb1c4d270) | [`HARDENING.md`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/blob/v1.0.32/HARDENING.md) |
+| v1.0.33 | [`v1.0.33`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.33) | [`40d7aed`](https://github.com/MishaKav/jest-coverage-comment/commit/40d7aed38d0fbaea266c34c12ab06356eec894eb) | [`HARDENING.md`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/blob/v1.0.33/HARDENING.md) |
+| v1.0.34 | [`v1.0.34`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.34) | [`25f2818`](https://github.com/MishaKav/jest-coverage-comment/commit/25f2818fee93043532f640ad32a7565b4bd4ea9a) | [`HARDENING.md`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/blob/v1.0.34/HARDENING.md) |
+| v1.0.35 | [`v1.0.35`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.35) | [`30a48d7`](https://github.com/MishaKav/jest-coverage-comment/commit/30a48d70e2a76ff9cf0e0b348e487c865bfea4dc) | [`HARDENING.md`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/blob/v1.0.35/HARDENING.md) |
+| v1.0.36 | [`v1.0.36`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.36) | [`642ef02`](https://github.com/MishaKav/jest-coverage-comment/commit/642ef024cc554a34b7082cea12c7bf63575ae151) | [`HARDENING.md`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/blob/v1.0.36/HARDENING.md) |
+| v1.0.37 | [`v1.0.37`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.37) | [`1b5d154`](https://github.com/MishaKav/jest-coverage-comment/commit/1b5d15445c8afba0c13bd00167bd31130b812d0a) | [`HARDENING.md`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/blob/v1.0.37/HARDENING.md) |
+| v1.0.38 | [`v1.0.38`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/tree/v1.0.38) | [`7032bf8`](https://github.com/MishaKav/jest-coverage-comment/commit/7032bf8e71aa2b267b6b143be3c4480b625c2b12) | [`HARDENING.md`](https://github.com/chainguard-actions/MishaKav-jest-coverage-comment/blob/v1.0.38/HARDENING.md) |
 
 ## Privacy
 
